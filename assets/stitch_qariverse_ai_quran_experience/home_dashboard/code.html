@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QariVerse | Home Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Amiri:wght@400;700&family=Literata:wght@700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@100..900&family=Inter:wght@100..900&family=Literata:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#8df5e4",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-container": "#a16800",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#2a1800",
+                    "secondary-fixed-dim": "#70d8c8",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface-variant": "#3e4a3f",
+                    "secondary-container": "#8df5e4",
+                    "background": "#f7f9fb",
+                    "surface-bright": "#f7f9fb",
+                    "surface-variant": "#e0e3e5",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#005048",
+                    "surface-container": "#eceef0",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#805200",
+                    "tertiary-fixed": "#ffddb5",
+                    "surface-container-highest": "#e0e3e5",
+                    "inverse-primary": "#64dd91",
+                    "secondary": "#006b5f",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#82faab",
+                    "primary-fixed-dim": "#64dd91",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#00210e",
+                    "on-primary-container": "#f6fff4",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#bdcabc",
+                    "on-secondary-container": "#007165",
+                    "on-background": "#191c1e",
+                    "on-secondary-fixed": "#00201c",
+                    "surface-tint": "#006d3a",
+                    "on-surface": "#191c1e",
+                    "inverse-surface": "#2d3133",
+                    "primary-container": "#008649",
+                    "primary": "#006a39",
+                    "outline": "#6d7a6f",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#643f00",
+                    "on-primary-fixed-variant": "#00522b",
+                    "tertiary-fixed-dim": "#ffb957",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "margin": "24px",
+                    "card-padding": "20px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "body-en": ["Inter"],
+                    "body-ar": ["Amiri"],
+                    "display-ar": ["Amiri"],
+                    "headline-lg-mobile": ["Literata"],
+                    "headline-lg": ["Literata"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-en": ["16px", {"lineHeight": "26px", "fontWeight": "400"}],
+                    "body-ar": ["24px", {"lineHeight": "48px", "fontWeight": "400"}],
+                    "display-ar": ["48px", {"lineHeight": "72px", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "34px", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .soft-extrusion {
+            box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.05), 
+                        -4px -4px 12px rgba(255, 255, 255, 0.5);
+        }
+        .emerald-glow {
+            box-shadow: 0 0 20px -5px rgba(0, 106, 57, 0.3);
+        }
+        .geometric-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l2.5 12.5L45 15l-12.5 2.5L30 30l-2.5-12.5L15 15l12.5-2.5z' fill='%23006a39' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-en min-h-screen pb-32 geometric-bg selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/20 shadow-sm flex justify-between items-center px-margin h-16">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform hover:opacity-80">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">QariVerse</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform hover:opacity-80">
+<span class="material-symbols-outlined text-primary">search</span>
+</button>
+<div class="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional and warm close-up portrait of a young man with a friendly expression, set against a soft-focus library background. The lighting is natural and flattering, with a gentle emerald tint to the shadows, aligning with a premium spiritual lifestyle app aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-xGBMioritH33hAUmm3CZBwHvRf1JCqVihppTVwIs00KAuw5zCNaTy8KP72L7nwLX_bAIReOtN7hUvT5TNE2RKBdDRvNbRhqB6Mteytjg7C3Fh3nKHotxkhLdttQ-_1xpyulwEHt3UU-ndMI-vp7ICVXiCwSMzt72iKG95aFVCOB_m9aWd9Bp0RCvRlVpDsgE3KCo-pG5KjI-AMSA66Xb6EtNaVRQmqMCtKnZjWPmdTkY6J8otfZWf3fH4AG8LHZYrFXtG1vRsg"/>
+</div>
+</div>
+</header>
+<main class="mt-20 px-margin space-y-8">
+<!-- Greeting Section -->
+<section class="pt-4">
+<div class="flex items-baseline gap-2">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Assalamu Alaikum,</h2>
+<span class="font-headline-lg text-headline-lg text-primary">Ahmad</span>
+</div>
+<p class="text-on-surface-variant font-label-caps mt-1">12 Shawwal, 1445 AH</p>
+</section>
+<!-- Prayer Hero Section -->
+<section class="relative overflow-hidden rounded-3xl h-56 group">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A breathtaking landscape of a tranquil dawn in a valley, with distant minarets silhouetted against a sky painted in ethereal shades of emerald green, deep teal, and soft gold. Low-lying mist floats between rolling hills. The visual style is meditative, high-fidelity, and cinematic, evoking a sense of divine peace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGzXojgkz1kdiGVp-FmRo8TO7icuIoxDgeqpBaRbQeiXbVgaO3l7gM2i5-AH0nS2Hites2epLLlzx8xaOYGxYr-UcjiI0pYb1EaMRyYy93dhMXC6cpp5WendKNvvQritUNvMEwCitD-QDLALjIE_07elDeBV2Ttkz2K6m-6ls_iHHi33EzeUgLlLhVj3P7Ag92UePY1VDxT35jWhTN_5ezUzG8taumX8IF2KMZDZCL8Y27QuMRxJhxfyNv04TtzaoF0vggeSnaxw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+</div>
+<div class="relative z-10 h-full p-card-padding flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="bg-primary-container/30 backdrop-blur-md text-on-primary-container px-4 py-1 rounded-full font-label-caps border border-white/20">NEXT PRAYER</span>
+<div class="text-right">
+<p class="text-white/80 font-label-caps">ASR IN</p>
+<p class="text-white font-headline-lg leading-none">01:42:15</p>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<h3 class="text-white font-headline-lg">Asr</h3>
+<p class="text-white/70 font-body-en">3:45 PM • Masjid Al-Falah</p>
+</div>
+<button class="bg-primary hover:bg-primary-container text-white p-4 rounded-2xl soft-extrusion emerald-glow transition-all active:scale-95">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Continue Listening & Daily Ayah Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Continue Listening -->
+<div class="glass-panel p-card-padding rounded-3xl soft-extrusion flex flex-col justify-between min-h-[180px]">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-primary font-label-caps mb-2">CONTINUE LISTENING</p>
+<h4 class="font-headline-lg-mobile text-on-surface">Surah Ar-Rahman</h4>
+<p class="text-on-surface-variant text-sm">Ayah 12 • Mishary Rashid Alafasy</p>
+</div>
+<div class="w-12 h-12 bg-secondary-container/30 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">headset</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="h-1.5 w-full bg-outline-variant/30 rounded-full overflow-hidden">
+<div class="h-full w-2/3 bg-primary rounded-full shadow-[0_0_8px_#006a39]"></div>
+</div>
+<div class="flex justify-between items-center mt-4">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">skip_previous</span>
+<span class="material-symbols-outlined text-primary text-3xl hover:scale-110 transition-transform cursor-pointer" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">skip_next</span>
+</div>
+<span class="text-xs font-label-caps text-on-surface-variant">04:12 / 06:45</span>
+</div>
+</div>
+</div>
+<!-- Daily Ayah -->
+<div class="bg-primary p-card-padding rounded-3xl soft-extrusion relative overflow-hidden flex flex-col justify-center items-center text-center group">
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-symbols-outlined text-white text-6xl">format_quote</span>
+</div>
+<p class="text-primary-fixed font-label-caps mb-4 relative z-10">DAILY AYAH</p>
+<div class="space-y-4 relative z-10">
+<p class="font-display-ar text-white text-3xl leading-relaxed">فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ</p>
+<p class="text-white/80 font-body-en italic text-sm px-4">"So which of the favors of your Lord would you deny?"</p>
+<p class="text-tertiary-fixed font-label-caps text-[10px] tracking-widest border border-tertiary/30 px-3 py-1 rounded-full inline-block">SURAH AR-RAHMAN : 13</p>
+</div>
+<div class="mt-6 flex gap-4 z-10">
+<button class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-white text-xl">share</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-white text-xl">favorite</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Popular Reciters Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-lg-mobile text-on-surface">Popular Reciters</h3>
+<button class="text-primary font-label-caps hover:underline">VIEW ALL</button>
+</div>
+<div class="flex gap-gutter overflow-x-auto no-scrollbar py-2 -mx-2 px-2">
+<!-- Reciter 1 -->
+<div class="flex-none w-32 group cursor-pointer">
+<div class="relative w-32 h-40 rounded-2xl overflow-hidden mb-2 soft-extrusion border-2 border-transparent group-hover:border-primary/40 transition-all">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A portrait of a respected Islamic scholar with a serene and dignified presence, wearing traditional attire. The image is stylized with a soft, ethereal background in muted emerald and gold tones, reflecting a premium spiritual aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdZJdys3EyO78X0u8_BwJGGmgRCr8QyULyTS2C2vsKez13MPcOuyirEdgKcEibt9rOxIX_-_-EAyKtxEAxLuqPb0FScwihL2Oufcihv7Ir5-m5rKpmJ23ZcKpezHpzY5NAiY47lthocULtLKMf8mDzqvsTiO2QIHssab_y_vQePjvxAA3xofEgw769J1dWQQNFj_LnvfoU72ZnOC2pKGnTFan16IluLZik67O0UICddgzehWXrA-la_49XgwVoNFqUIJZ_F_9qeg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+<span class="material-symbols-outlined text-white text-3xl mx-auto" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<p class="font-label-caps text-on-surface text-center truncate px-1">Mishary Rashid</p>
+<p class="text-[10px] text-on-surface-variant text-center">1.2M Listeners</p>
+</div>
+<!-- Reciter 2 -->
+<div class="flex-none w-32 group cursor-pointer">
+<div class="relative w-32 h-40 rounded-2xl overflow-hidden mb-2 soft-extrusion border-2 border-transparent group-hover:border-primary/40 transition-all">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A dignified portrait of a prominent Quranic reciter with a focused and peaceful expression. The lighting is warm and directional, creating a cinematic feel with soft shadows in deep teal. The artistic style is elegant and modern, fitting for a high-end luxury app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB48A2GTh_43xSgt58j73m_fRJxG5V1oNGgGJfr5Ky8Ue681Pdd_iztWgEUMNphKbi9264wLp6bHI7SQdbJsaa43hMH-8jV0TWT_IIHT70RqSMs-iKeS5btkzFnZHCet7NuRJjK7TJVuksi1CsYZZKWTh3-VcV7hHWekyuW9ZyUy1K22RrRhWtn4R2UvahF_83vvG2rLmGefyZviR9gT9DRW4ZLv9MkZF4h103ky6Ahkc4mWK3_fIJhm3QwmTuw5rYnt1bbkD6GTQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+<span class="material-symbols-outlined text-white text-3xl mx-auto" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<p class="font-label-caps text-on-surface text-center truncate px-1">Yasser Al-Dosari</p>
+<p class="text-[10px] text-on-surface-variant text-center">980K Listeners</p>
+</div>
+<!-- Reciter 3 -->
+<div class="flex-none w-32 group cursor-pointer">
+<div class="relative w-32 h-40 rounded-2xl overflow-hidden mb-2 soft-extrusion border-2 border-transparent group-hover:border-primary/40 transition-all">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A portrait of a world-renowned Qari with an inspiring and humble gaze, set against a background featuring subtle Islamic geometric patterns in a glassmorphic aesthetic. The color palette centers on soft whites and rich emerald greens, suggesting a state of spiritual tranquility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDXORLTTiSMibm2igwDpRSxDqHE1JtebQvZrR2BOiTnDo2GQdrjdyl842FFg71qtigpkQZlR6yqcVmA3rlFqLT5i4aJoE9wnxKPOekhcKWQuCDDGLgF8OEPB_mEQXgYxCZgNGM9RZtJ9_KSc_nBcGu5M4ysdFwxsAdsRl1TI-5hpR29jrimgnzveThdm2le8jbQSgx8Kc3NWC2UsS1WguxMU0eqSLowu-CD_P2xB2xIntEogSQvW9QS0jtWojsoE53u-51DhTCbg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+<span class="material-symbols-outlined text-white text-3xl mx-auto" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<p class="font-label-caps text-on-surface text-center truncate px-1">Abdur-Rahman</p>
+<p class="text-[10px] text-on-surface-variant text-center">2.5M Listeners</p>
+</div>
+<!-- Reciter 4 -->
+<div class="flex-none w-32 group cursor-pointer">
+<div class="relative w-32 h-40 rounded-2xl overflow-hidden mb-2 soft-extrusion border-2 border-transparent group-hover:border-primary/40 transition-all">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Close-up of a venerable scholar with a wise and gentle expression, in a high-fidelity digital art style. The scene is illuminated by glowing edges and soft neumorphic depths, with accents of emerald and gold light reflecting off the surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMVqiwLRKw4jx8Huvx0rv8gaw0US7c4ZlluWDqMtrU7J-5LMhz_iSOtLalco7kfT188a88EkMzhnn_qxIa5KrmLmRZ3Wyp4HhapYFBO6d2-EaEb-wI7oiq5Aj63u3avylsEVqkD1tKd4EalNzhOVhY3OrTS6Punp982wNi-PdP0_egFZ0Oox9FcsaVWr84uXisv7rTvtSjU8O_74xyGKKgCpuRdDOBY8NDE201znyVXGmPs6BUKLtguinyLNoY9NDzhCpj0sgqRQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+<span class="material-symbols-outlined text-white text-3xl mx-auto" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<p class="font-label-caps text-on-surface text-center truncate px-1">Saad Al Ghamidi</p>
+<p class="text-[10px] text-on-surface-variant text-center">1.1M Listeners</p>
+</div>
+</div>
+</section>
+<!-- Quick Actions Bento Grid -->
+<section class="grid grid-cols-2 gap-4">
+<div class="glass-panel p-4 rounded-2xl soft-extrusion flex items-center gap-4 hover:bg-white/80 transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-white">auto_stories</span>
+</div>
+<div>
+<p class="font-label-caps text-on-surface">Juz Info</p>
+<p class="text-[10px] text-on-surface-variant">30 Juz Available</p>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-2xl soft-extrusion flex items-center gap-4 hover:bg-white/80 transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">bookmark</span>
+</div>
+<div>
+<p class="font-label-caps text-on-surface">Bookmarks</p>
+<p class="text-[10px] text-on-surface-variant">12 Verses Saved</p>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-2xl soft-extrusion flex items-center gap-4 hover:bg-white/80 transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center group-hover:bg-tertiary transition-colors">
+<span class="material-symbols-outlined text-tertiary group-hover:text-white">mosque</span>
+</div>
+<div>
+<p class="font-label-caps text-on-surface">Qibla</p>
+<p class="text-[10px] text-on-surface-variant">290.5° Compass</p>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-2xl soft-extrusion flex items-center gap-4 hover:bg-white/80 transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-white">volunteer_activism</span>
+</div>
+<div>
+<p class="font-label-caps text-on-surface">Zakat</p>
+<p class="text-[10px] text-on-surface-variant">Calculate Now</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-6 inset-x-margin z-50 flex justify-around items-center py-3 px-6 bg-surface-container/60 backdrop-blur-2xl rounded-full border border-white/20 shadow-[0_8px_32px_rgba(0,106,57,0.15)]">
+<a class="flex flex-col items-center justify-center text-primary relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-primary after:rounded-full after:shadow-[0_0_8px_#006a39] active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps mt-0.5">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-caps text-label-caps mt-0.5">Quran</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">headset</span>
+<span class="font-label-caps text-label-caps mt-0.5">Audio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">download</span>
+<span class="font-label-caps text-label-caps mt-0.5">Saved</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps mt-0.5">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for Prayer Timer (Simplified simulation)
+        function updateTimer() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            // Mocking a countdown for UI demonstration
+            // In real app, this would calculate time until next prayer
+        }
+        setInterval(updateTimer, 1000);
+
+        // Click interaction for active state switching (Front-end only demo)
+        const navItems = document.querySelectorAll('nav a');
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                navItems.forEach(nav => {
+                    nav.classList.remove('text-primary', 'after:content-[\'\']', 'after:absolute', 'after:-bottom-1', 'after:w-1', 'after:h-1', 'after:bg-primary', 'after:rounded-full', 'after:shadow-[0_0_8px_#006a39]');
+                    nav.classList.add('text-outline');
+                });
+                item.classList.remove('text-outline');
+                item.classList.add('text-primary', 'after:content-[\'\']', 'after:absolute', 'after:-bottom-1', 'after:w-1', 'after:h-1', 'after:bg-primary', 'after:rounded-full', 'after:shadow-[0_0_8px_#006a39]');
+            });
+        });
+    </script>
+</body></html>

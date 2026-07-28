@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QariVerse - Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Amiri:wght@400;700&family=Literata:wght@700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@100..900&family=Inter:wght@100..900&family=Literata:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 106, 57, 0.08);
+        }
+
+        .neumorphic-press {
+            box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.05), 
+                        inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+        }
+
+        .luminous-glow {
+            box-shadow: 0 0 20px -2px rgba(0, 106, 39, 0.3);
+        }
+
+        .islamic-pattern {
+            background-image: url("https://www.transparenttextures.com/patterns/islamic-art.png");
+            opacity: 0.03;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#8df5e4",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-container": "#a16800",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-fixed": "#2a1800",
+                        "secondary-fixed-dim": "#70d8c8",
+                        "surface-container-low": "#f2f4f6",
+                        "on-surface-variant": "#3e4a3f",
+                        "secondary-container": "#8df5e4",
+                        "background": "#f7f9fb",
+                        "surface-bright": "#f7f9fb",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#005048",
+                        "surface-container": "#eceef0",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#805200",
+                        "tertiary-fixed": "#ffddb5",
+                        "surface-container-highest": "#e0e3e5",
+                        "inverse-primary": "#64dd91",
+                        "secondary": "#006b5f",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#82faab",
+                        "primary-fixed-dim": "#64dd91",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#00210e",
+                        "on-primary-container": "#f6fff4",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#bdcabc",
+                        "on-secondary-container": "#007165",
+                        "on-background": "#191c1e",
+                        "on-secondary-fixed": "#00201c",
+                        "surface-tint": "#006d3a",
+                        "on-surface": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "primary-container": "#008649",
+                        "primary": "#006a39",
+                        "outline": "#6d7a6f",
+                        "surface": "#f7f9fb",
+                        "on-tertiary-fixed-variant": "#643f00",
+                        "on-primary-fixed-variant": "#00522b",
+                        "tertiary-fixed-dim": "#ffb957",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "margin": "24px",
+                        "card-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-en": ["Inter"],
+                        "body-ar": ["Amiri"],
+                        "display-ar": ["Amiri"],
+                        "headline-lg-mobile": ["Literata"],
+                        "headline-lg": ["Literata"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-en": ["16px", {"lineHeight": "26px", "fontWeight": "400"}],
+                        "body-ar": ["24px", {"lineHeight": "48px", "fontWeight": "400"}],
+                        "display-ar": ["48px", {"lineHeight": "72px", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["26px", {"lineHeight": "34px", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen flex flex-col items-center justify-center overflow-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Ambient Background -->
+<div class="fixed inset-0 z-0">
+<!-- Luminous Gradients -->
+<div class="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-secondary-fixed/20 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary-fixed/20 blur-[120px] rounded-full"></div>
+<!-- Watermark Pattern -->
+<div class="absolute inset-0 islamic-pattern"></div>
+</div>
+<!-- Content Canvas -->
+<main class="relative z-10 w-full max-w-md h-[884px] flex flex-col p-margin">
+<!-- Hero Illustration Area -->
+<div class="flex-1 flex flex-col items-center justify-center pt-8">
+<div class="relative w-full aspect-square max-h-[360px] animate-float">
+<!-- Image Wrapper with Neumorphic Depth -->
+<div class="absolute inset-0 rounded-[40px] bg-white p-2 shadow-[20px_20px_60px_#d1d9e6,-20px_-20px_60px_#ffffff]">
+<div class="w-full h-full rounded-[32px] overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10"></div>
+<img class="w-full h-full object-cover" data-alt="A cinematic, high-detail digital painting of a grand mosque silhouette at sunset. The sky is a breathtaking gradient of deep amber, soft pink, and emerald green. Golden light glimmers off intricate minarets and a central dome. The style is ethereal and spiritual, featuring soft atmospheric perspective and glowing highlights that evoke a sense of divine peace and premium sanctuary aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0XB-tiHGlgrP0rCLYOTj0_-5MQwiaPgbQrjKNTtNOSThWYHmN9Wq-gHfyhdz8k_xioINgLqqcw722NVBDLebdFDFp89l2gX1zL8VmlrHdcbBcyFGtORrSZv4INip7on8zqKirGt61zqhmT6IsPrZhLJLYSboJ9TSQPPJp_QCDbb7x5bkryT86WtxeDyJTfHHuwZP6pyS6xSylr-1MuXF0xvHJcJ9eObj7UDz_nJn67fAijtaLhgnOE51Sdb1ap1_Z5UV-WrfIMw"/>
+<!-- Floating Ornament -->
+<div class="absolute top-4 right-4 z-20 w-12 h-12 glass-panel rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Glassmorphism Onboarding Card -->
+<div class="glass-panel rounded-[32px] p-card-padding mt-8 mb-8 relative overflow-hidden">
+<!-- Subtle Gold Accent Edge -->
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tertiary-fixed to-transparent opacity-40"></div>
+<div class="space-y-4 text-center">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">
+                    Discover Quran Recitation
+                </h1>
+<p class="font-body-en text-body-en text-on-surface-variant px-2 leading-relaxed">
+                    Experience the divine word through the world's most beautiful voices in a sanctuary designed for your soul.
+                </p>
+</div>
+<!-- Navigation Indicators & Next Button -->
+<div class="mt-8 flex flex-col items-center gap-8">
+<!-- Indicators -->
+<div class="flex gap-3">
+<div class="w-8 h-2 rounded-full bg-primary-container shadow-[0_0_8px_rgba(0,106,57,0.3)]"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+</div>
+<!-- Action Button -->
+<button class="w-full h-14 bg-gradient-to-r from-primary to-primary-container rounded-2xl flex items-center justify-center gap-3 text-white font-label-caps text-label-caps luminous-glow active:scale-95 transition-all duration-200">
+                    GET STARTED
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Footer Branding -->
+<footer class="pb-6 text-center">
+<span class="font-headline-lg-mobile text-primary/40 text-[18px] tracking-widest opacity-50">QariVerse</span>
+</footer>
+</main>
+<!-- Custom Micro-interactions Script -->
+<script>
+        // Simple ripple effect for the primary button
+        document.querySelector('button').addEventListener('click', function(e) {
+            let x = e.clientX - e.target.offsetLeft;
+            let y = e.clientY - e.target.offsetTop;
+            
+            let ripple = document.createElement('span');
+            ripple.style.position = 'absolute';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '0px';
+            ripple.style.height = '0px';
+            ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+            ripple.style.borderRadius = '50%';
+            ripple.style.transform = 'translate(-50%, -50%)';
+            ripple.style.transition = 'width 0.6s ease-out, height 0.6s ease-out, opacity 0.6s ease-out';
+            ripple.style.pointerEvents = 'none';
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.style.width = '300px';
+                ripple.style.height = '300px';
+                ripple.style.opacity = '0';
+            }, 0);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    </script>
+</body></html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QariVerse - Learn &amp; Reflect</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Amiri:wght@400;700&amp;family=Literata:wght@700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@100..900&amp;family=Inter:wght@100..900&amp;family=Literata:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#8df5e4",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-container": "#a16800",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#2a1800",
+                    "secondary-fixed-dim": "#70d8c8",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface-variant": "#3e4a3f",
+                    "secondary-container": "#8df5e4",
+                    "background": "#f7f9fb",
+                    "surface-bright": "#f7f9fb",
+                    "surface-variant": "#e0e3e5",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#005048",
+                    "surface-container": "#eceef0",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#805200",
+                    "tertiary-fixed": "#ffddb5",
+                    "surface-container-highest": "#e0e3e5",
+                    "inverse-primary": "#64dd91",
+                    "secondary": "#006b5f",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#82faab",
+                    "primary-fixed-dim": "#64dd91",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#00210e",
+                    "on-primary-container": "#f6fff4",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#bdcabc",
+                    "on-secondary-container": "#007165",
+                    "on-background": "#191c1e",
+                    "on-secondary-fixed": "#00201c",
+                    "surface-tint": "#006d3a",
+                    "on-surface": "#191c1e",
+                    "inverse-surface": "#2d3133",
+                    "primary-container": "#008649",
+                    "primary": "#006a39",
+                    "outline": "#6d7a6f",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#643f00",
+                    "on-primary-fixed-variant": "#00522b",
+                    "tertiary-fixed-dim": "#ffb957",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "margin": "24px",
+                    "card-padding": "20px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "body-en": ["Inter"],
+                    "body-ar": ["Amiri"],
+                    "display-ar": ["Amiri"],
+                    "headline-lg-mobile": ["Literata"],
+                    "headline-lg": ["Literata"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-en": ["16px", {"lineHeight": "26px", "fontWeight": "400"}],
+                    "body-ar": ["24px", {"lineHeight": "48px", "fontWeight": "400"}],
+                    "display-ar": ["48px", {"lineHeight": "72px", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "34px", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 106, 57, 0.05),
+                inset 1px 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        .neumorphic-button {
+            box-shadow: 
+                0 10px 20px rgba(128, 82, 0, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .neumorphic-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 10px rgba(128, 82, 0, 0.2);
+        }
+        .emerald-glow {
+            filter: drop-shadow(0 0 8px rgba(0, 106, 57, 0.4));
+        }
+        .pattern-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l2.121 21.213L51.213 8.787 38.787 30l12.426 21.213-21.213-12.426L30 60l-2.121-21.213L8.787 51.213 21.213 30 8.787 8.787 27.879 21.213z' fill='%2006d3a' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background font-body-en text-on-background min-h-screen relative flex flex-col overflow-hidden pattern-bg">
+<!-- Atmospheric WebGL / Shader Background -->
+<div class="fixed inset-0 pointer-events-none z-0">
+
+</div>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col items-center justify-center px-margin relative z-10 w-full max-w-md mx-auto pt-12 pb-32">
+<!-- Illustration Container -->
+<div class="relative w-full aspect-square mb-12 flex items-center justify-center">
+<!-- Decorative Back Glows -->
+<div class="absolute w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+<div class="absolute w-48 h-48 bg-tertiary/5 rounded-full blur-3xl -translate-x-12 translate-y-12"></div>
+<!-- Main Illustration Image -->
+<div class="relative z-10 w-full h-full flex items-center justify-center scale-110">
+<img class="w-full h-full object-contain drop-shadow-2xl" data-alt="A premium 3D illustration for a religious app onboarding. In the center is an elegantly opened Quran book with intricate gold patterns on the pages, floating above a bed of soft emerald green clouds. Surrounding the book are glowing, translucent golden bookmarks and floating crystal geometric ornaments. The lighting is ethereal and soft, with light rays filtering through a misty atmosphere, primarily featuring emerald green and warm gold tones against a white light-mode background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBpcBK6mCZRseYhd1uMWkG8Zl9dGW019OZCkvb_ttrgipqCoNbMTeAWzknJgOVLcO29g3PXgM7SohnQKL3i5rF5a8pse8QZ2FyiPhrfFJfKMGidSTM8sg24A_O2VxNclpK6vPi9rV3YQzGNVoBLQFbnrsc2T5c1SmjuxBvgiduE5XnKj1pxgNG82UePtjGHYFBnv9YtTr6aHkvydgjtcy_-NAf27U9igmxSmCm2VzryC2DZpDfFuCUB-t9Qto9tBiOjPTozF3suw"/>
+</div>
+<!-- Floating UI Elements for depth -->
+<div class="absolute top-10 right-4 glass-card p-3 rounded-xl animate-bounce" style="animation-duration: 3s;">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+</div>
+<div class="absolute bottom-20 left-4 glass-card p-3 rounded-xl animate-bounce" style="animation-duration: 4s; animation-delay: 1s;">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+</div>
+</div>
+<!-- Glassmorphism Text Card -->
+<div class="glass-card w-full p-card-padding rounded-[2rem] text-center space-y-6">
+<div class="space-y-2">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background tracking-tight">
+                    Learn and Reflect
+                </h1>
+<p class="font-body-en text-body-en text-on-surface-variant leading-relaxed">
+                    Dive deeper into the divine wisdom with word-by-word Tafsir and organized bookmarks for your spiritual journey.
+                </p>
+</div>
+<!-- Onboarding Progress Indicators -->
+<div class="flex justify-center gap-2 pt-4">
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+<div class="w-8 h-2 rounded-full bg-primary emerald-glow"></div>
+</div>
+<!-- Final Action CTA -->
+<div class="pt-6">
+<button class="neumorphic-button w-full py-4 px-8 rounded-full bg-gradient-to-r from-tertiary to-tertiary-container text-on-tertiary font-bold flex items-center justify-center gap-3 active:scale-95 transition-all" onclick="window.location.href='#'">
+<span class="font-label-caps text-label-caps uppercase tracking-widest">Get Started</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Success/Transactional Page: No BottomNavBar per "Shell Visibility" rules -->
+<script>
+        // Subtle Mouse parallax for the glass cards
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.glass-card');
+            const x = (window.innerWidth / 2 - e.pageX) / 40;
+            const y = (window.innerHeight / 2 - e.pageY) / 40;
+            
+            cards.forEach(card => {
+                card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+            });
+        });
+
+        // Initialize Material Symbols weight
+        document.addEventListener('DOMContentLoaded', () => {
+            const icons = document.querySelectorAll('.material-symbols-outlined');
+            icons.forEach(icon => {
+                if(icon.getAttribute('data-weight') === 'fill') {
+                    icon.style.fontVariationSettings = "'FILL' 1";
+                }
+            });
+        });
+    </script>
+</body></html>

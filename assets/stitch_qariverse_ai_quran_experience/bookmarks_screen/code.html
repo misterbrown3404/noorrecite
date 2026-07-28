@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QariVerse - My Bookmarks</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Amiri:wght@400;700&family=Literata:wght@700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@100..900&family=Inter:wght@100..900&family=Literata:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Ethereal Sanctuary Custom Effects */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 106, 57, 0.05);
+        }
+        
+        .neumorphic-inset {
+            background: #f7f9fb;
+            box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.05), 
+                        inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+        }
+
+        .luminous-glow {
+            box-shadow: 0 0 20px -5px rgba(0, 106, 57, 0.3);
+        }
+
+        .islamic-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l2.121 5.121L37.242 3l1.637 5.293L44.142 6.142l1.021 5.438L50.5 10l.354 5.518L56.142 15.858l-.343 5.519L60 22.5l-1.021 5.438L60 33.379l-4.201 1.123.343 5.519-5.288.34-1.021 5.438-5.363-1.021L44.142 54l-5.263-2.151-1.637 5.293-5.121-2.121L30 60l-2.121-5.121-5.121 2.121-1.637-5.293L15.858 54l-1.021-5.438-5.363 1.021-1.021-5.438-5.288-.34.343-5.519L0 33.379l1.021-5.438L0 22.5l4.201-1.123-.343-5.519 5.288-.34 1.021-5.438 5.363 1.021L15.858 6l5.263 2.151 1.637-5.293L27.879 5.121 30 0z' fill='%23006a39' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+
+        .ayah-gradient {
+            background: linear-gradient(135deg, #006a39 0%, #008649 100%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #006a3944;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#8df5e4",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-container": "#a16800",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#2a1800",
+                    "secondary-fixed-dim": "#70d8c8",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface-variant": "#3e4a3f",
+                    "secondary-container": "#8df5e4",
+                    "background": "#f7f9fb",
+                    "surface-bright": "#f7f9fb",
+                    "surface-variant": "#e0e3e5",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#005048",
+                    "surface-container": "#eceef0",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#805200",
+                    "tertiary-fixed": "#ffddb5",
+                    "surface-container-highest": "#e0e3e5",
+                    "inverse-primary": "#64dd91",
+                    "secondary": "#006b5f",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#82faab",
+                    "primary-fixed-dim": "#64dd91",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#00210e",
+                    "on-primary-container": "#f6fff4",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#bdcabc",
+                    "on-secondary-container": "#007165",
+                    "on-background": "#191c1e",
+                    "on-secondary-fixed": "#00201c",
+                    "surface-tint": "#006d3a",
+                    "on-surface": "#191c1e",
+                    "inverse-surface": "#2d3133",
+                    "primary-container": "#008649",
+                    "primary": "#006a39",
+                    "outline": "#6d7a6f",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#643f00",
+                    "on-primary-fixed-variant": "#00522b",
+                    "tertiary-fixed-dim": "#ffb957",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "margin": "24px",
+                    "card-padding": "20px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "body-en": ["Inter"],
+                    "body-ar": ["Amiri"],
+                    "display-ar": ["Amiri"],
+                    "headline-lg-mobile": ["Literata"],
+                    "headline-lg": ["Literata"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-en": ["16px", {"lineHeight": "26px", "fontWeight": "400"}],
+                    "body-ar": ["24px", {"lineHeight": "48px", "fontWeight": "400"}],
+                    "display-ar": ["48px", {"lineHeight": "72px", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "34px", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-en islamic-pattern min-h-screen pb-32">
+<!-- Top AppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/20 shadow-sm flex justify-between items-center px-margin h-16">
+<div class="flex items-center gap-4">
+<button class="text-primary hover:opacity-80 active:scale-95 transition-all">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">QariVerse</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-primary hover:opacity-80 active:scale-95 transition-all">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-margin max-w-4xl mx-auto space-y-10">
+<!-- Continue Reading Hero -->
+<section class="relative group">
+<div class="glass-panel rounded-3xl overflow-hidden p-8 flex flex-col md:flex-row items-center gap-8 border-white/40 transition-transform duration-500 hover:scale-[1.01]">
+<div class="w-full md:w-1/3 aspect-square rounded-2xl overflow-hidden relative shadow-lg">
+<div class="absolute inset-0 ayah-gradient opacity-80 z-10"></div>
+<div class="absolute inset-0 flex items-center justify-center z-20">
+<span class="font-display-ar text-white/90 drop-shadow-md">القرآن</span>
+</div>
+<div class="bg-cover bg-center w-full h-full transform transition-transform duration-700 group-hover:scale-110" data-alt="A serene cinematic close-up of a beautifully bound vintage Quran resting on a plush emerald green velvet pillow. The lighting is soft and ethereal, with golden dust motes dancing in a single beam of afternoon sun. The background is a blurred high-end minimalist library with light oak wood and cream-colored walls, maintaining a calm and luxurious spiritual aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC86gZo9nCIXZurVNxIJjuHc32amifD-p1zQtKjeCmp-CuNdpgn6hLgymiGAtxvUOFMd8--HmBC_D86IYMeewuGNFhn64fcWQzSZdWQ2WO4v2vltMpq1M702x3mkZ6Yq_aiF79yG3OAkAVh36veUAGxkFqpFD2gU0kjyq6h6Ey6KVa5oEB3_b48LEQLFlZQ8uIB8uUhgOFi-sAEzzdPDHL44Y8fhCtDGcJ8JpNrC2SsjtiyP0CtuL09YXlGrK33YPJaLdiHui8Vjw')"></div>
+</div>
+<div class="flex-1 space-y-4">
+<div class="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-sm mr-2">history</span>
+                        Last Read
+                    </div>
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary mb-1">Surah Al-Kahf</h2>
+<p class="text-on-surface-variant font-body-en">Verse 10 • Page 294</p>
+</div>
+<div class="pt-2">
+<button class="ayah-gradient text-white font-label-caps text-label-caps py-4 px-8 rounded-full flex items-center gap-2 luminous-glow active:scale-95 transition-all">
+                            Continue Reading
+                            <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Decorative Glow -->
+<div class="absolute -top-12 -right-12 w-64 h-64 bg-primary/5 blur-[80px] rounded-full -z-10"></div>
+</section>
+<!-- Bookmarks Section -->
+<section class="space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">My Bookmarks</h3>
+<p class="text-on-surface-variant font-label-caps text-label-caps">12 Saved Ayahs</p>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-primary hover:bg-primary/5">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-primary hover:bg-primary/5">
+<span class="material-symbols-outlined">sort</span>
+</button>
+</div>
+</div>
+<!-- Ayah List -->
+<div class="grid gap-6">
+<!-- Ayah Card 1 -->
+<div class="glass-panel rounded-[2rem] p-card-padding border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl ayah-gradient flex items-center justify-center text-white font-bold luminous-glow">
+<span class="font-body-ar text-lg">٢٥٥</span>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-primary uppercase">Al-Baqarah</h4>
+<p class="text-on-surface-variant text-sm">Verse 255 (Ayat al-Kursi)</p>
+</div>
+</div>
+<button class="text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined filled-icon">bookmark</span>
+</button>
+</div>
+<div class="space-y-6 text-center md:text-right">
+<p class="font-body-ar text-body-ar leading-loose text-on-surface text-right" dir="rtl">
+                            اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ...
+                        </p>
+<p class="font-body-en text-on-surface-variant text-left leading-relaxed border-l-2 border-primary/20 pl-6 italic">
+                            "Allah! There is no god but He, the Ever-Living, the One Who sustains and protects all that exists..."
+                        </p>
+</div>
+<div class="mt-8 pt-6 border-t border-primary/5">
+<div class="neumorphic-inset rounded-2xl p-4 space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">edit_note</span>
+                                    My Notes
+                                </span>
+<span class="text-[10px] text-outline font-label-caps">Updated Oct 24</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                This verse provides immense spiritual protection. Recite every morning and before sleep for tranquility.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Ayah Card 2 -->
+<div class="glass-panel rounded-[2rem] p-card-padding border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary font-bold shadow-sm">
+<span class="font-body-ar text-lg">١٥٣</span>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-primary uppercase">Al-Baqarah</h4>
+<p class="text-on-surface-variant text-sm">Verse 153</p>
+</div>
+</div>
+<button class="text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined filled-icon">bookmark</span>
+</button>
+</div>
+<div class="space-y-6 text-center md:text-right">
+<p class="font-body-ar text-body-ar leading-loose text-on-surface text-right" dir="rtl">
+                            يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ ۚ إِنَّ اللَّهَ مَعَ الصَّابِرِينَ
+                        </p>
+<p class="font-body-en text-on-surface-variant text-left leading-relaxed border-l-2 border-primary/20 pl-6 italic">
+                            "O you who have believed, seek help through patience and prayer. Indeed, Allah is with the patient."
+                        </p>
+</div>
+<div class="mt-8 pt-6 border-t border-primary/5">
+<div class="neumorphic-inset rounded-2xl p-4 space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">edit_note</span>
+                                    My Notes
+                                </span>
+<button class="text-primary"><span class="material-symbols-outlined text-lg">add_circle</span></button>
+</div>
+<p class="text-sm text-outline italic leading-relaxed">
+                                Add a personal reflection or goal for this verse...
+                            </p>
+</div>
+</div>
+</div>
+<!-- Ayah Card 3 -->
+<div class="glass-panel rounded-[2rem] p-card-padding border-white/20 transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px]">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary font-bold shadow-sm">
+<span class="font-body-ar text-lg">٦</span>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-primary uppercase">Ash-Sharh</h4>
+<p class="text-on-surface-variant text-sm">Verse 6</p>
+</div>
+</div>
+<button class="text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined filled-icon">bookmark</span>
+</button>
+</div>
+<div class="space-y-6 text-center md:text-right">
+<p class="font-body-ar text-body-ar leading-loose text-on-surface text-right" dir="rtl">
+                            إِنَّ مَعَ الْعُسْرِ يُسْرًا
+                        </p>
+<p class="font-body-en text-on-surface-variant text-left leading-relaxed border-l-2 border-primary/20 pl-6 italic">
+                            "Indeed, with hardship [will be] ease."
+                        </p>
+</div>
+<div class="mt-8 pt-6 border-t border-primary/5">
+<div class="neumorphic-inset rounded-2xl p-4 space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-label-caps text-label-caps text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">edit_note</span>
+                                    My Notes
+                                </span>
+<span class="text-[10px] text-outline font-label-caps">Updated 2 days ago</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                A reminder that every struggle has a purpose and relief is always promised by Allah. Be patient.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty State (Hidden) -->
+<div class="hidden flex-col items-center justify-center py-20 text-center space-y-6">
+<div class="w-32 h-32 rounded-full glass-panel flex items-center justify-center text-primary/40">
+<span class="material-symbols-outlined text-6xl">bookmark_border</span>
+</div>
+<div>
+<h4 class="font-headline-lg text-headline-lg text-on-surface">No Bookmarks Yet</h4>
+<p class="text-on-surface-variant max-w-xs mx-auto">Start saving your favorite Ayahs to build your personal spiritual treasury.</p>
+</div>
+<button class="text-primary font-label-caps text-label-caps border border-primary/30 py-3 px-8 rounded-full hover:bg-primary/5">
+                Explore Quran
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-6 inset-x-margin z-50 flex justify-around items-center py-3 px-6 bg-surface-container/60 backdrop-blur-2xl border border-white/20 rounded-full shadow-[0_8px_32px_rgba(0,106,57,0.15)]">
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-caps text-label-caps">Quran</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">headset</span>
+<span class="font-label-caps text-label-caps">Audio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-primary after:rounded-full after:shadow-[0_0_8px_#006a39] active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined filled-icon">download</span>
+<span class="font-label-caps text-label-caps">Saved</span>
+</a>
+<a class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps">Profile</span>
+</a>
+</nav>
+<!-- Micro-interactions Script -->
+<script>
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 25;
+                const rotateY = (centerX - x) / 25;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+        });
+    </script>
+</body></html>

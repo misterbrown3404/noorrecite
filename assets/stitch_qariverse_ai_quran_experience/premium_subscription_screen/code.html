@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QariVerse Premium | Elevate Your Spiritual Journey</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Amiri:wght@400;700&amp;family=Literata:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#8df5e4",
+                    "surface-dim": "#d8dadc",
+                    "tertiary-container": "#a16800",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-fixed": "#2a1800",
+                    "secondary-fixed-dim": "#70d8c8",
+                    "surface-container-low": "#f2f4f6",
+                    "on-surface-variant": "#3e4a3f",
+                    "secondary-container": "#8df5e4",
+                    "background": "#f7f9fb",
+                    "surface-bright": "#f7f9fb",
+                    "surface-variant": "#e0e3e5",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#005048",
+                    "surface-container": "#eceef0",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#805200",
+                    "tertiary-fixed": "#ffddb5",
+                    "surface-container-highest": "#e0e3e5",
+                    "inverse-primary": "#64dd91",
+                    "secondary": "#006b5f",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "primary-fixed": "#82faab",
+                    "primary-fixed-dim": "#64dd91",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#00210e",
+                    "on-primary-container": "#f6fff4",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#bdcabc",
+                    "on-secondary-container": "#007165",
+                    "on-background": "#191c1e",
+                    "on-secondary-fixed": "#00201c",
+                    "surface-tint": "#006d3a",
+                    "on-surface": "#191c1e",
+                    "inverse-surface": "#2d3133",
+                    "primary-container": "#008649",
+                    "primary": "#006a39",
+                    "outline": "#6d7a6f",
+                    "surface": "#f7f9fb",
+                    "on-tertiary-fixed-variant": "#643f00",
+                    "on-primary-fixed-variant": "#00522b",
+                    "tertiary-fixed-dim": "#ffb957",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "unit": "4px",
+                    "margin": "24px",
+                    "card-padding": "20px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Inter"],
+                    "body-en": ["Inter"],
+                    "body-ar": ["Amiri"],
+                    "display-ar": ["Amiri"],
+                    "headline-lg-mobile": ["Literata"],
+                    "headline-lg": ["Literata"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-en": ["16px", {"lineHeight": "26px", "fontWeight": "400"}],
+                    "body-ar": ["24px", {"lineHeight": "48px", "fontWeight": "400"}],
+                    "display-ar": ["48px", {"lineHeight": "72px", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "34px", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f7f9fb;
+            overflow-x: hidden;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Glassmorphism & Neumorphism Combined */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(0, 106, 57, 0.05);
+        }
+
+        .premium-gold-card {
+            background: linear-gradient(135deg, rgba(255, 221, 181, 0.4) 0%, rgba(255, 255, 255, 0.8) 100%);
+            border: 1px solid rgba(128, 82, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(128, 82, 0, 0.08);
+        }
+
+        .neumorphic-inset {
+            box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.05), 
+                        inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+        }
+
+        /* Particles animation */
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .particle {
+            position: fixed;
+            background: radial-gradient(circle, #ffddb5 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .gold-glow {
+            filter: drop-shadow(0 0 8px rgba(128, 82, 0, 0.3));
+        }
+
+        /* Geometric pattern watermark */
+        .islamic-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l5.878 18.09h19.022L39.46 29.27 45.338 47.36 30 36.18 14.662 47.36l5.878-18.09L5.1 18.09h19.022L30 0z' fill='%23006a39' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-en text-on-surface islamic-pattern">
+<!-- Particle Generator (Background) -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none z-0" id="particle-container"></div>
+<!-- TopAppBar (JSON Mapping) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-white/20 shadow-sm flex justify-between items-center px-margin h-16 w-full">
+<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">QariVerse</h1>
+<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined">search</span>
+</button>
+</header>
+<main class="relative z-10 pt-24 pb-32 px-margin max-w-5xl mx-auto">
+<!-- Hero Section -->
+<section class="text-center mb-16">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-caps text-label-caps mb-6 gold-glow">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                ELITE STATUS
+            </div>
+<h2 class="font-headline-lg text-headline-lg text-on-background mb-4 leading-tight">Join QariVerse Premium</h2>
+<p class="text-on-surface-variant font-body-en text-body-en max-w-xl mx-auto">
+                Unlock the ultimate spiritual companion. Experience the divine wisdom with elite tools designed for deep contemplation and mastery.
+            </p>
+</section>
+<!-- Subscription Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+<!-- Monthly Plan -->
+<div class="glass-card rounded-[2rem] p-8 flex flex-col items-center border border-white/40 hover:scale-[1.02] transition-transform duration-500">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-2">MONTHLY JOURNEY</h3>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="text-on-background font-headline-lg text-[40px] font-bold">$9.99</span>
+<span class="text-on-surface-variant font-body-en">/mo</span>
+</div>
+<ul class="w-full space-y-4 mb-10">
+<li class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span class="font-body-en">Ad-free spiritual experience</span>
+</li>
+<li class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span class="font-body-en">High-fidelity audio streaming</span>
+</li>
+<li class="flex items-center gap-3 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<span class="font-body-en">Unlimited Ayah bookmarks</span>
+</li>
+</ul>
+<button class="w-full py-4 rounded-2xl bg-surface-container-highest text-on-surface font-label-caps text-label-caps hover:bg-surface-variant transition-colors active:scale-95 transition-transform neumorphic-inset">
+                    START 7-DAY FREE TRIAL
+                </button>
+</div>
+<!-- Yearly Plan (Elite Theme) -->
+<div class="premium-gold-card rounded-[2rem] p-8 flex flex-col items-center relative overflow-hidden group hover:scale-[1.05] transition-transform duration-500">
+<div class="absolute top-0 right-0 px-6 py-2 bg-tertiary text-white font-label-caps text-[10px] rounded-bl-2xl">
+                    MOST SPIRITUAL VALUE
+                </div>
+<h3 class="font-label-caps text-label-caps text-tertiary mb-2">ANNUAL DEVOTION</h3>
+<div class="flex items-baseline gap-1 mb-2">
+<span class="text-on-tertiary-fixed font-headline-lg text-[48px] font-bold">$79.99</span>
+<span class="text-on-tertiary-fixed-variant font-body-en">/yr</span>
+</div>
+<p class="text-tertiary font-label-caps text-[11px] mb-8 bg-tertiary-fixed/30 px-3 py-1 rounded-full">SAVE 33% ANNUALLY</p>
+<ul class="w-full space-y-4 mb-10">
+<li class="flex items-center gap-3 text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-tertiary text-[20px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-body-en font-semibold">Everything in Monthly</span>
+</li>
+<li class="flex items-center gap-3 text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-tertiary text-[20px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-body-en font-semibold">Exclusive 'Elite Gold' Theme</span>
+</li>
+<li class="flex items-center gap-3 text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-tertiary text-[20px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-body-en font-semibold">Offline Recitation Downloads</span>
+</li>
+<li class="flex items-center gap-3 text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-tertiary text-[20px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-body-en font-semibold">Personalized Learning Paths</span>
+</li>
+</ul>
+<button class="w-full py-4 rounded-2xl bg-gradient-to-r from-tertiary to-tertiary-container text-white font-label-caps text-label-caps hover:opacity-90 transition-opacity active:scale-95 transition-transform shadow-lg shadow-tertiary/20">
+                    GET ELITE ACCESS
+                </button>
+<!-- Decorative Glow -->
+<div class="absolute -bottom-20 -right-20 w-40 h-40 bg-tertiary-fixed blur-[80px] opacity-30 group-hover:opacity-60 transition-opacity"></div>
+</div>
+</div>
+<!-- Features Comparison Table -->
+<section class="mb-20 overflow-hidden">
+<h3 class="font-headline-lg text-headline-lg text-center mb-12">Feature Comparison</h3>
+<div class="glass-card rounded-3xl overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="p-6 font-label-caps text-label-caps text-on-surface-variant">Core Experience</th>
+<th class="p-6 font-label-caps text-label-caps text-on-surface-variant text-center">Free</th>
+<th class="p-6 font-label-caps text-label-caps text-primary text-center">Premium</th>
+</tr>
+</thead>
+<tbody class="font-body-en text-body-en divide-y divide-white/20">
+<tr>
+<td class="p-6 text-on-surface">Quran Reading &amp; Translation</td>
+<td class="p-6 text-center"><span class="material-symbols-outlined text-outline">check</span></td>
+<td class="p-6 text-center"><span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+</tr>
+<tr class="bg-white/10">
+<td class="p-6 text-on-surface">Audio Streaming</td>
+<td class="p-6 text-center text-on-surface-variant text-sm">Standard</td>
+<td class="p-6 text-center font-bold text-primary">Ultra-HD</td>
+</tr>
+<tr>
+<td class="p-6 text-on-surface">Advertisements</td>
+<td class="p-6 text-center text-on-surface-variant text-sm">Yes</td>
+<td class="p-6 text-center font-bold text-primary">Ad-Free</td>
+</tr>
+<tr class="bg-white/10">
+<td class="p-6 text-on-surface">Advanced Search &amp; AI Insights</td>
+<td class="p-6 text-center text-outline"><span class="material-symbols-outlined">close</span></td>
+<td class="p-6 text-center"><span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+</tr>
+<tr>
+<td class="p-6 text-on-surface">Themes &amp; Custom Ornaments</td>
+<td class="p-6 text-center text-on-surface-variant text-sm">Basic</td>
+<td class="p-6 text-center font-bold text-primary">Elite Gold</td>
+</tr>
+<tr class="bg-white/10">
+<td class="p-6 text-on-surface">Priority Support</td>
+<td class="p-6 text-center text-outline"><span class="material-symbols-outlined">close</span></td>
+<td class="p-6 text-center"><span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Visual Social Proof (Bento Section) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2 glass-card rounded-3xl p-8 relative overflow-hidden group">
+<div class="relative z-10">
+<h4 class="font-headline-lg-mobile text-headline-lg-mobile mb-4">Elite Typography</h4>
+<p class="text-on-surface-variant mb-6">Enjoy exclusive access to traditional calligraphy styles and high-readability fonts optimized for long meditation sessions.</p>
+<div class="p-6 bg-white/40 rounded-2xl font-display-ar text-display-ar text-center text-primary/80">
+                        بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+                    </div>
+</div>
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 blur-[50px] rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+</div>
+<div class="rounded-3xl bg-cover bg-center min-h-[250px]" data-alt="A macro photograph of an ornate, golden Islamic geometric pattern engraved on a piece of high-quality ivory-colored marble. The lighting is soft and golden, creating a sense of luxury, spirituality, and divine craftsmanship. The depth of field is shallow, focusing on the intricate details of the gold leaf inlay." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA__KR3jaZeKvyAyQWxBhBgc4GBxku6U24WYfi9wFjdK_r2VOTu60tnzklVE8ajYiVeZX4YFzxcrnOSq4cC4BY9JTBe49YVUTXHy_akaN7NtuHizRs1felGC16zV6bv00LuBUXqA_AH39CbjHBQinXmjr6qPockcdAHNhB7sT6Prl8UMOr7NmGAm_1FmwjWQRhuJuIKBnfbIaFyR2LwfjnvXYqLqkgQa7N8G5HjNmoDAnZt4eRdeQeIjHNpGeOSmDcgDK8uHjurkA')"></div>
+</div>
+</main>
+<!-- BottomNavBar (JSON Mapping) -->
+<nav class="fixed bottom-6 inset-x-margin z-50 bg-surface-container/60 backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,106,57,0.15)] flex justify-around items-center py-3 px-6 rounded-full">
+<button class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps uppercase mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-caps text-label-caps uppercase mt-1">Quran</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200">
+<span class="material-symbols-outlined">headset</span>
+<span class="font-label-caps text-label-caps uppercase mt-1">Audio</span>
+</button>
+<button class="flex flex-col items-center justify-center text-outline hover:text-primary transition-colors active:scale-90 duration-200">
+<span class="material-symbols-outlined">download</span>
+<span class="font-label-caps text-label-caps uppercase mt-1">Saved</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-primary after:rounded-full after:shadow-[0_0_8px_#006a39] active:scale-90 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-caps text-label-caps uppercase mt-1">Profile</span>
+</button>
+</nav>
+<script>
+        // Particle Background Generator
+        const container = document.getElementById('particle-container');
+        const particleCount = 20;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 4 + 2;
+            const left = Math.random() * 100;
+            const duration = Math.random() * 20 + 10;
+            const delay = Math.random() * 10;
+
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${left}%`;
+            particle.style.bottom = `-20px`;
+            particle.style.animation = `float ${duration}s linear ${delay}s infinite`;
+            
+            container.appendChild(particle);
+        }
+
+        // Micro-interaction for plan cards
+        document.querySelectorAll('.glass-card, .premium-gold-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>
