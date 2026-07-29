@@ -313,7 +313,7 @@ class PressableScale extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.scale = 0.98,
+    this.scale = 0.86,
     this.duration = const Duration(milliseconds: 120),
   });
 

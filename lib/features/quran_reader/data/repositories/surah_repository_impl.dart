@@ -1,17 +1,17 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 
+import '../../../../core/error/failure_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/storage/cache_envelope.dart';
 import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/storage/storage_keys.dart';
 import '../../domain/entities/surah.dart';
 import '../../domain/repositories/surah_repository.dart';
 import '../datasources/surah_remote_datasource.dart';
 import '../models/surah_model.dart';
 
-const _cacheKey = 'cache_suwar_eng';
 // Surah metadata is effectively immutable, so a long TTL keeps it fully offline
 // while still picking up rare corrections on a weekly cadence.
 const _ttl = Duration(days: 7);
@@ -25,7 +25,7 @@ class SurahRepositoryImpl implements SurahRepository {
   Future<Either<Failure, List<Surah>>> getSuwar({
     String language = 'eng',
   }) async {
-    final cached = _readCache();
+    final cached = _readCache(language);
 
     if (cached != null && !cached.isStale(_ttl)) {
       return Right(cached.data);
@@ -40,8 +40,8 @@ class SurahRepositoryImpl implements SurahRepository {
     return _fetch(language);
   }
 
-  CacheEnvelope<List<Surah>>? _readCache() {
-    final raw = _storage.read<String>(_cacheKey);
+  CacheEnvelope<List<Surah>>? _readCache(String language) {
+    final raw = _storage.read<String>(StorageKeys.suwarCache(language));
     if (raw == null) return null;
     try {
       final json = jsonDecode(raw) as Map<String, dynamic>;
@@ -56,7 +56,7 @@ class SurahRepositoryImpl implements SurahRepository {
     }
   }
 
-  Future<void> _writeCache(List<Surah> suwar) async {
+  Future<void> _writeCache(String language, List<Surah> suwar) async {
     final envelope = CacheEnvelope<List<dynamic>>(
       data: suwar
           .map((s) => SurahModel(
@@ -70,13 +70,16 @@ class SurahRepositoryImpl implements SurahRepository {
           .toList(),
       savedAtMs: DateTime.now().millisecondsSinceEpoch,
     );
-    await _storage.write(_cacheKey, jsonEncode(envelope.toJson()));
+    await _storage.write(
+      StorageKeys.suwarCache(language),
+      jsonEncode(envelope.toJson()),
+    );
   }
 
   Future<void> _refreshInBackground(String language) async {
     try {
       final suwar = await _remote.getSuwar(language: language);
-      await _writeCache(suwar);
+      await _writeCache(language, suwar);
     } catch (_) {
       // Silent — stale data remains valid.
     }
@@ -85,16 +88,10 @@ class SurahRepositoryImpl implements SurahRepository {
   Future<Either<Failure, List<Surah>>> _fetch(String language) async {
     try {
       final suwar = await _remote.getSuwar(language: language);
-      await _writeCache(suwar);
+      await _writeCache(language, suwar);
       return Right(List<Surah>.from(suwar));
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout) {
-        return const Left(NetworkFailure());
-      }
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+    } catch (e, s) {
+      return Left(FailureMapper.fromException(e, s));
     }
   }
 }

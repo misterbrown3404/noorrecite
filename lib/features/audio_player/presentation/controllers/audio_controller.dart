@@ -6,6 +6,9 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:quran/quran.dart' as quran;
 
+import '../../../../core/constants/app_assets.dart';
+import '../../../../core/error/crash_reporter.dart';
+import '../../../../core/services/media_artwork_service.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
 import '../../../downloads/presentation/controllers/download_controller.dart';
@@ -19,7 +22,7 @@ enum AudioRepeatMode { off, one, all }
 /// Owns the [just_audio] player and exposes reactive playback state for the UI.
 ///
 /// Kept as a permanent (non-lazy) singleton so playback survives navigation
-/// between the mini-player, the full player, and other tabs.
+/// between the player and other tabs.
 class AudioController extends GetxController {
   AudioController(this._storage);
 
@@ -47,6 +50,11 @@ class AudioController extends GetxController {
   AudioPlayer get player => _player;
 
   Timer? _persistDebounce;
+
+  /// In-memory mirror of the persisted duration cache, so [cachedDuration] and
+  /// [_cacheDuration] don't deserialize the whole Hive string on every access
+  /// (setQueue touches this once per track — 114× for a full reciter queue).
+  Map<String, dynamic>? _durationCacheMemo;
 
   // Reactive state consumed by the player UI.
   final queue = <AudioTrack>[].obs;
@@ -83,13 +91,15 @@ class AudioController extends GetxController {
   }
 
   Map<String, dynamic> get _durationCache =>
-      _storage.readJson(StorageKeys.audioDurations) ?? const {};
+      _durationCacheMemo ??=
+          _storage.readJson(StorageKeys.audioDurations) ?? <String, dynamic>{};
 
   Future<void> _cacheDuration(String trackId, Duration value) async {
     if (value <= Duration.zero) return;
-    final cache = Map<String, dynamic>.from(_durationCache);
+    final cache = _durationCache;
     if (cache[trackId] == value.inMilliseconds) return; // no-op write
     cache[trackId] = value.inMilliseconds;
+    _durationCacheMemo = cache;
     await _storage.writeJson(StorageKeys.audioDurations, cache);
   }
 
@@ -111,9 +121,6 @@ class AudioController extends GetxController {
       isBuffering.value =
           state.processingState == ProcessingState.loading ||
           state.processingState == ProcessingState.buffering;
-      if (state.processingState == ProcessingState.completed) {
-        _onTrackComplete();
-      }
     });
     _player.positionStream.listen((p) {
       position.value = p;
@@ -173,34 +180,50 @@ class AudioController extends GetxController {
     );
     if (startIndex < 0) startIndex = 0;
 
+    // Fast path: the requested surah is already loaded in the live queue for
+    // this same reciter/moshaf. Seek to it instead of rebuilding the playlist,
+    // which would otherwise stall or mute the switch mid-play.
+    if (autoPlay && !_offlineMode) {
+      final existing = queue.indexWhere(
+        (t) => t.id == tracks[startIndex].id,
+      );
+      if (existing >= 0) {
+        await playAt(existing);
+        return;
+      }
+    }
+
     await setQueue(tracks, startIndex: startIndex, autoPlay: autoPlay);
+  }
+
+  /// True when the user has enabled offline mode in settings.
+  bool get _offlineMode {
+    final settings = Get.isRegistered<SettingsController>()
+        ? Get.find<SettingsController>()
+        : null;
+    return settings?.offlineMode.value ?? false;
   }
 
   /// Resolves the playback source for [track]: a local `file://` URI when the
   /// surah has been downloaded (and still exists on disk), otherwise the remote
   /// stream URL. Falls back gracefully if the downloads feature isn't wired.
-  /// Respects offline mode — if enabled and track isn't downloaded, throws.
   Uri _sourceUri(AudioTrack track) {
     final downloads = Get.isRegistered<DownloadController>()
         ? Get.find<DownloadController>()
         : null;
     final item = downloads?.itemFor(track.id);
-    final isDownloaded = item != null;
-
-    // Check offline mode
-    final settings = Get.isRegistered<SettingsController>()
-        ? Get.find<SettingsController>()
-        : null;
-    final offlineMode = settings?.offlineMode.value ?? false;
-
-    if (offlineMode && !isDownloaded) {
-      // Offline mode but not downloaded — fall back to stream rather than
-      // throwing; the error banner will show a buffering failure if there's
-      // truly no connectivity, which is more useful than a hard abort.
-    }
-
-    if (isDownloaded) return Uri.file(item.filePath);
+    if (item != null) return Uri.file(item.filePath);
     return Uri.parse(track.url);
+  }
+
+  /// In offline mode, a queue may only contain tracks that exist on disk.
+  /// Returns the tracks that are actually playable offline.
+  List<AudioTrack> _downloadedOnly(List<AudioTrack> tracks) {
+    final downloads = Get.isRegistered<DownloadController>()
+        ? Get.find<DownloadController>()
+        : null;
+    if (downloads == null) return const [];
+    return tracks.where((t) => downloads.isDownloaded(t.id)).toList();
   }
 
   Future<void> setQueue(
@@ -210,13 +233,52 @@ class AudioController extends GetxController {
     bool autoPlay = true,
   }) async {
     error.value = '';
-    queue.assignAll(tracks);
+
+    // Defensive copy. Callers sometimes pass `queue` itself (e.g. re-selecting
+    // a track from the queue sheet). `RxList.assignAll` clears then re-adds, so
+    // assigning a list its own backing store would empty it out before the
+    // re-add reads it — the "queue suddenly empty" bug. Copying first makes the
+    // source independent of the observable.
+    var effectiveTracks = List<AudioTrack>.of(tracks);
+    var effectiveStart = startIndex;
+    if (_offlineMode) {
+      final requestedId =
+          (startIndex >= 0 && startIndex < tracks.length) ? tracks[startIndex].id : null;
+      final available = _downloadedOnly(tracks);
+      if (available.isEmpty) {
+        queue.clear();
+        error.value =
+            'Offline mode is on and this surah isn\'t downloaded. Download it or turn off offline mode.';
+        return;
+      }
+      effectiveTracks = available;
+      final idx = available.indexWhere((t) => t.id == requestedId);
+      effectiveStart = idx < 0 ? 0 : idx;
+    }
+
+    queue.assignAll(effectiveTracks);
     // Show the cached total length immediately (if we have one) so the scrubber
     // isn't stuck at 0:00 until the stream header resolves.
-    if (startIndex >= 0 && startIndex < tracks.length) {
+    if (effectiveStart >= 0 && effectiveStart < effectiveTracks.length) {
       duration.value =
-          cachedDuration(tracks[startIndex].id) ?? Duration.zero;
+          cachedDuration(effectiveTracks[effectiveStart].id) ?? Duration.zero;
     }
+    tracks = effectiveTracks;
+    startIndex = effectiveStart;
+
+    // Resolve lock-screen / notification artwork: one bundled portrait per
+    // reciter, materialized to a file URI (asset: paths aren't valid artUris).
+    // Distinct assets are cached, so a 114-track single-reciter queue copies at
+    // most one file. Art is optional — a null URI just omits it on the card.
+    final artByAsset = <String, Uri>{};
+    for (final asset in {
+      for (final t in tracks)
+        AppAssets.reciterImage(t.reciterId) ?? AppAssets.quranOnVelvet,
+    }) {
+      final uri = await MediaArtworkService.instance.uriForAsset(asset);
+      if (uri != null) artByAsset[asset] = uri;
+    }
+
     try {
       await _player.setAudioSources(
         tracks
@@ -229,6 +291,8 @@ class AudioController extends GetxController {
                   artist: t.reciterName,
                   album: t.moshafName,
                   duration: cachedDuration(t.id),
+                  artUri: artByAsset[AppAssets.reciterImage(t.reciterId) ??
+                      AppAssets.quranOnVelvet],
                 ),
               ),
             )
@@ -238,39 +302,83 @@ class AudioController extends GetxController {
       );
       currentIndex.value = startIndex;
       if (autoPlay) await _player.play();
-    } on StateError catch (e) {
-      error.value = e.message;
-    } catch (e) {
-      error.value = e.toString();
+    } catch (e, s) {
+      // Never surface raw exception text to users.
+      CrashReporter.instance.recordError(e, s, reason: 'setQueue');
+      error.value = 'Couldn\'t start playback. Please try again.';
+    }
+  }
+
+  /// Jump to [index] within the *current* queue and play it.
+  ///
+  /// Re-selecting a surah that's already loaded must NOT rebuild the playlist:
+  /// `setAudioSources` tears down and re-creates every source, which stalls or
+  /// mutes playback mid-switch. When [index] is already in the live queue we
+  /// just seek the existing playlist — instant, gapless, no rebuild. Falls back
+  /// to a full [setQueue] only if the index is somehow out of range.
+  Future<void> playAt(int index) async {
+    if (index < 0 || index >= queue.length) return;
+    try {
+      currentIndex.value = index;
+      duration.value = cachedDuration(queue[index].id) ?? Duration.zero;
+      await _player.seek(Duration.zero, index: index);
+      await _player.play();
+    } catch (e, s) {
+      CrashReporter.instance.recordError(e, s, reason: 'playAt');
+      // Rebuild as a last resort — copy the queue so we never feed the
+      // observable its own backing list (see setQueue's defensive copy).
+      await setQueue(List<AudioTrack>.of(queue), startIndex: index);
     }
   }
 
   /// Rebuilds the queue from the persisted [lastPlayback] snapshot and resumes
-  /// from the saved position. When there is no snapshot (e.g. the user opened
-  /// the player directly on a fresh install), falls back to a default reciter
-  /// so the screen is never left silent with an empty queue.
+  /// from the saved position. The snapshot only stores the current track's
+  /// identity, so the full queue is reconstructed from the reciter's moshaf via
+  /// [playReciter]. When there is no (or an unusable) snapshot, falls back to a
+  /// default session so the player is never left silent with an empty queue.
   Future<void> resumeLastSession() async {
     if (queue.isNotEmpty) return; // live session already active
     final saved = lastPlayback;
-    if (saved == null) {
+    final reciterId = saved?['reciterId'] as int?;
+    final surahNumber = saved?['surahNumber'] as int?;
+    final posMs = (saved?['positionMs'] as int?) ?? 0;
+    if (reciterId == null || surahNumber == null) {
       await _startDefaultSession();
       return;
     }
-    try {
-      final rawTracks = (saved['tracks'] as List).cast<Map<String, dynamic>>();
-      final tracks = rawTracks.map(AudioTrack.fromJson).toList();
-      final index = (saved['currentIndex'] as int?) ?? 0;
-      final posMs = (saved['positionMs'] as int?) ?? 0;
-      await setQueue(
-        tracks,
-        startIndex: index,
-        initialPosition: Duration(milliseconds: posMs),
-      );
-    } catch (_) {
-      // Corrupt snapshot — fall back to a default session rather than leaving
-      // the player empty.
+
+    if (!Get.isRegistered<ReciterController>()) {
       await _startDefaultSession();
+      return;
     }
+    final rc = Get.find<ReciterController>();
+    if (rc.reciters.isEmpty) {
+      await rc.fetchReciters();
+    }
+
+    Reciter? reciter;
+    for (final r in rc.reciters) {
+      if (r.id == reciterId) {
+        reciter = r;
+        break;
+      }
+    }
+    if (reciter == null) {
+      await _startDefaultSession();
+      return;
+    }
+
+    final surahNames = {
+      for (final n in reciter.primaryMoshaf?.surahList ?? const <int>[])
+        n: quran.getSurahName(n),
+    };
+    await playReciter(
+      reciter,
+      startSurahNumber: surahNumber,
+      surahNames: surahNames,
+      autoPlay: true,
+    );
+    if (posMs > 0) await seek(Duration(milliseconds: posMs));
   }
 
   /// Load a sensible default queue when there is nothing to resume: the user's
@@ -364,10 +472,6 @@ class AudioController extends GetxController {
     await _player.setShuffleModeEnabled(isShuffling.value);
   }
 
-  void _onTrackComplete() {
-    // LoopMode handles repeat; nothing extra needed here for now.
-  }
-
   // --- Persistence helpers ------------------------------------------------
 
   /// Debounce position saves to at most once per 5 s to avoid excessive I/O.
@@ -376,15 +480,22 @@ class AudioController extends GetxController {
     _persistDebounce = Timer(const Duration(seconds: 5), _persistSession);
   }
 
+  /// Persist a *slim* snapshot of the current session — just the current
+  /// track's identity plus playback offset. The full queue is deliberately
+  /// NOT stored: it's a deterministic function of the reciter's moshaf, so
+  /// [resumeLastSession] rebuilds it from the reciter directory. This turns a
+  /// ~114-track serialization (every 5 s) into a handful of fields.
   Future<void> _persistSession() async {
     final track = currentTrack;
     if (track == null) return;
     await Future.wait([
       _storage.writeJson(StorageKeys.lastPlayback, {
-        'tracks': queue.map((t) => t.toJson()).toList(),
-        'currentIndex': currentIndex.value,
+        'reciterId': track.reciterId,
+        'reciterName': track.reciterName,
+        'moshafName': track.moshafName,
+        'surahNumber': track.surahNumber,
+        'surahName': track.surahName,
         'positionMs': position.value.inMilliseconds,
-        'durationMs': duration.value.inMilliseconds,
       }),
       _storage.write(StorageKeys.preferredReciterId, track.reciterId),
     ]);

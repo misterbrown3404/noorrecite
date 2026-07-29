@@ -1,22 +1,38 @@
-import 'dart:io' show Platform;
-
+import 'package:audio_session/audio_session.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+
+import '../error/crash_reporter.dart';
 
 /// Plays the full adhan (call to prayer) audio on demand.
 ///
-/// Deliberately separate from the Quran [AudioController] and its
-/// `just_audio_background` player: the adhan is a short, fire-and-forget
-/// playback that must never disturb the user's Quran queue, lock-screen
-/// controls, or saved playback position.
+/// Uses its own [AudioPlayer], separate from the Quran [AudioController], so the
+/// adhan never disturbs the user's Quran queue, lock-screen controls, or saved
+/// playback position.
 ///
-/// Platform split — on **Android**, the full adhan is played by the system as
-/// the prayer notification's channel sound (works even when the app is closed),
-/// so this in-app player is a no-op there to avoid double audio. On **iOS**,
-/// notification sounds are capped at ~30s, so the full adhan is played here when
-/// a prayer is reached in the foreground or the notification is tapped.
+/// Why in-app playback (both platforms): a notification's channel/attachment
+/// sound is capped by the OS at ~30s, and the adhan clip is ~2 minutes — so the
+/// notification sound alone can never play the full call to prayer. Worse, on
+/// Android the channel sound routes to the ALARM stream, so if the alarm slider
+/// is at 0 the user gets vibrate-only. Playing here through an [AudioPlayer] on
+/// the media stream plays the clip in full and is audible on the media volume
+/// the user actually hears.
 ///
-/// Fully offline — the adhan ships as a bundled asset. If the asset is missing,
-/// [play] fails silently so the prayer notification still works as a reminder.
+/// The prayer notification itself stays as the lightweight at-time alert; this
+/// service plays the full adhan when a prayer is reached in the foreground or
+/// the notification is tapped ([NotificationService] routes 'adhan' payloads
+/// here).
+///
+/// IMPORTANT: `just_audio_background` is initialized process-globally in
+/// `main.dart`, which makes it wrap *every* [AudioPlayer] in the app — including
+/// this one. Under that wrapper a source loaded without a `MediaItem` tag throws
+/// on load, so the source here MUST carry a tag even though the adhan doesn't
+/// need lock-screen transport controls. This is why a plain `setAsset` was
+/// silent: the untagged load threw and the failure was swallowed.
+///
+/// Fully offline — the adhan ships as a bundled asset. If playback fails, the
+/// error is reported (not swallowed) so it's diagnosable, and the prayer
+/// notification still works as a reminder.
 class AdhanAudioService {
   AdhanAudioService._();
   static final AdhanAudioService instance = AdhanAudioService._();
@@ -26,20 +42,36 @@ class AdhanAudioService {
 
   AudioPlayer? _player;
 
-  /// Play the adhan from the start. No-op on Android (the notification channel
-  /// sound handles playback there). Any in-progress adhan is stopped first so
-  /// overlapping prayer events don't stack audio.
+  /// Play the adhan from the start on all platforms. Any in-progress adhan is
+  /// stopped first so overlapping prayer events don't stack audio.
   Future<void> play() async {
-    if (Platform.isAndroid) return; // handled by the notification channel sound
     try {
       await _player?.dispose();
+
+      // Route to the media stream at an audible level (mirrors the Quran
+      // player's session), so the adhan isn't gated by the alarm-volume slider
+      // the way the notification channel sound is.
+      final session = await AudioSession.instance;
+      await session.configure(const AudioSessionConfiguration.music());
+
       final player = AudioPlayer();
       _player = player;
-      await player.setAsset(_adhanAsset);
+
+      // The tag is REQUIRED: `just_audio_background` is initialized globally in
+      // main.dart, so an untagged source throws on load. The adhan doesn't need
+      // transport controls, but the MediaItem must be present.
+      await player.setAudioSource(
+        AudioSource.asset(
+          _adhanAsset,
+          tag: MediaItem(id: 'adhan', title: 'Adhan', album: 'Qari Verse'),
+        ),
+      );
       await player.play();
-    } catch (_) {
-      // Missing asset or playback failure — stay silent; the notification
-      // itself already alerted the user.
+    } catch (e, s) {
+      // Previously swallowed silently, which is exactly why the missing-tag
+      // failure was invisible. Report it (the prayer notification still alerts
+      // the user) instead of hiding it.
+      CrashReporter.instance.recordError(e, s, reason: 'adhan play');
     }
   }
 

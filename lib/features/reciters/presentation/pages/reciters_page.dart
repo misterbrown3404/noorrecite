@@ -18,7 +18,7 @@ class RecitersPage extends StatelessWidget {
     final controller = Get.find<ReciterController>();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reciters', style: AppTypography.titleLg),
+        title:const Text('Reciters'),
         actions: [
           HeaderIconAction(
             icon: Icons.settings_rounded,
@@ -39,6 +39,7 @@ class RecitersPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: AppSpacing.sm),
                     const PillTag(label: 'Featured Reciters'),
                     const SizedBox(height: AppSpacing.sm),
                     NeumorphicInsetField(
@@ -88,7 +89,7 @@ class RecitersPage extends StatelessWidget {
     crossAxisCount: 2,
     mainAxisSpacing: AppSpacing.md,
     crossAxisSpacing: AppSpacing.md,
-    childAspectRatio: 0.72,
+    childAspectRatio: 0.68,
   );
 
   static const _gridPadding = EdgeInsets.fromLTRB(
@@ -136,14 +137,19 @@ class _ReciterCard extends StatelessWidget {
     return PressableScale(
       onTap: () => _play(reciter),
       child: GlassCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Stack(
               alignment: Alignment.topRight,
               children: [
                 Container(
-                  width: 96,
-                  height: 98,
+                  width: 88,
+                  height: 88,
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -207,46 +213,33 @@ class _ReciterCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-            //   child: Text(
-            //     reciter.name,
-            //     textAlign: TextAlign.center,
-            //     maxLines: 2,
-            //     overflow: TextOverflow.ellipsis,
-            //     style: AppTypography.titleLg,
-            //   ),
-            // ),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(reciter.name, style: AppTypography.titleLg),
+            // Name + moshaf sit in a tight group so the avatar and play button
+            // anchor the top/bottom while any spare height goes to the gaps.
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  reciter.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.titleLg,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  reciter.primaryMoshaf?.name ?? '',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodyEnSm,
+                ),
+              ],
             ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-            //   child: Text(
-            //     reciter.primaryMoshaf?.name ?? '',
-            //     textAlign: TextAlign.center,
-            //     maxLines: 2,
-            //     overflow: TextOverflow.ellipsis,
-            //     style: AppTypography.labelSemibold,
-            //   ),
-            // ),
-            const SizedBox(height: AppSpacing.sm),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                reciter.primaryMoshaf?.name ?? '',
-                style: AppTypography.headlineLg,
-              ),
-            ),
-
-            const SizedBox(height: AppSpacing.sm),
             PressableScale(
               onTap: () => _play(reciter),
               child: NeuIconButton(
                 icon: Icons.play_arrow_rounded,
-                size: 56,
+                size: 52,
                 onPressed: () => _play(reciter),
               ),
             ),
@@ -264,7 +257,12 @@ class _ReciterCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Gradient ring skeleton
           Container(
@@ -273,14 +271,17 @@ class _ReciterCardSkeleton extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: AppColors.tealEmeraldGradient,
             ),
-            child: const SkeletonBox.circle(size: 96),
+            child: const SkeletonBox.circle(size: 88),
           ),
-          const SizedBox(height: AppSpacing.md),
-          SkeletonBox(width: 140, height: 18),
-          const SizedBox(height: AppSpacing.xs),
-          SkeletonBox(width: 100, height: 12),
-          const SizedBox(height: AppSpacing.lg),
-          const SkeletonBox.circle(size: 56),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SkeletonBox(width: 120, height: 18),
+              const SizedBox(height: AppSpacing.xs),
+              SkeletonBox(width: 80, height: 12),
+            ],
+          ),
+          const SkeletonBox.circle(size: 52),
         ],
       ),
     );

@@ -1,17 +1,17 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 
+import '../../../../core/error/failure_mapper.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/storage/cache_envelope.dart';
 import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/storage/storage_keys.dart';
 import '../../domain/entities/reciter.dart';
 import '../../domain/repositories/reciter_repository.dart';
 import '../datasources/reciter_remote_datasource.dart';
 import '../models/reciter_model.dart';
 
-const _cacheKey = 'cache_reciters_eng';
 const _ttl = Duration(hours: 24);
 
 class ReciterRepositoryImpl implements ReciterRepository {
@@ -23,7 +23,7 @@ class ReciterRepositoryImpl implements ReciterRepository {
   Future<Either<Failure, List<Reciter>>> getReciters({
     String language = 'eng',
   }) async {
-    final cached = _readCache();
+    final cached = _readCache(language);
 
     if (cached != null && !cached.isStale(_ttl)) {
       // Fresh cache — return immediately, no network call.
@@ -40,8 +40,8 @@ class ReciterRepositoryImpl implements ReciterRepository {
     return _fetch(language);
   }
 
-  CacheEnvelope<List<Reciter>>? _readCache() {
-    final raw = _storage.read<String>(_cacheKey);
+  CacheEnvelope<List<Reciter>>? _readCache(String language) {
+    final raw = _storage.read<String>(StorageKeys.recitersCache(language));
     if (raw == null) return null;
     try {
       final json = jsonDecode(raw) as Map<String, dynamic>;
@@ -59,7 +59,7 @@ class ReciterRepositoryImpl implements ReciterRepository {
     }
   }
 
-  Future<void> _writeCache(List<Reciter> reciters) async {
+  Future<void> _writeCache(String language, List<Reciter> reciters) async {
     final envelope = CacheEnvelope<List<dynamic>>(
       data: reciters
           .map((r) => ReciterModel(
@@ -71,13 +71,16 @@ class ReciterRepositoryImpl implements ReciterRepository {
           .toList(),
       savedAtMs: DateTime.now().millisecondsSinceEpoch,
     );
-    await _storage.write(_cacheKey, jsonEncode(envelope.toJson()));
+    await _storage.write(
+      StorageKeys.recitersCache(language),
+      jsonEncode(envelope.toJson()),
+    );
   }
 
   Future<void> _refreshInBackground(String language) async {
     try {
       final reciters = await _remote.getReciters(language: language);
-      await _writeCache(reciters);
+      await _writeCache(language, reciters);
     } catch (_) {
       // Background refresh failure is silent — stale data is still shown.
     }
@@ -86,18 +89,12 @@ class ReciterRepositoryImpl implements ReciterRepository {
   Future<Either<Failure, List<Reciter>>> _fetch(String language) async {
     try {
       final reciters = await _remote.getReciters(language: language);
-      await _writeCache(reciters);
+      await _writeCache(language, reciters);
       // List<Reciter>.from so the runtime type matches the declared contract
       // (see _readCache) — the remote hands back a covariant List<ReciterModel>.
       return Right(List<Reciter>.from(reciters));
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout) {
-        return const Left(NetworkFailure());
-      }
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+    } catch (e, s) {
+      return Left(FailureMapper.fromException(e, s));
     }
   }
 }

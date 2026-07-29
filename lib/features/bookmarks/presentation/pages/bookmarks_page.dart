@@ -19,7 +19,7 @@ class BookmarksPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('BookMark', style: AppTypography.titleLg),
+        title: const Text('BookMark'),
         actions: [
           HeaderIconAction(
             icon: Icons.settings_rounded,

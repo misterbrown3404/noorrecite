@@ -8,9 +8,7 @@ import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/onboarding/presentation/pages/splash_page.dart';
 import '../../features/quran_reader/presentation/pages/ayah_reader_page.dart';
 import '../../features/reciters/presentation/pages/reciters_page.dart';
-//import '../../features/search/presentation/pages/search_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
-//import '../../features/statistics/presentation/pages/statistics_page.dart';
 import '../bindings/app_bindings.dart';
 import '../bindings/main_shell_binding.dart';
 import '../bindings/settings_binding.dart';
@@ -47,10 +45,6 @@ abstract final class AppPages {
       name: AppRoutes.addReflection,
       page: () => const AddReflectionPage(),
     ),
-    // GetPage(
-    //   name: AppRoutes.statistics,
-    //   page: () => const StatisticsPage(),
-    // ),
     GetPage(name: AppRoutes.reciters, page: () => const RecitersPage()),
     GetPage(
       name: AppRoutes.ayahReader,

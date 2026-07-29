@@ -26,27 +26,29 @@ import '../../features/reciters/domain/repositories/reciter_repository.dart';
 import '../../features/reciters/domain/usecases/get_reciters.dart';
 import '../../features/reciters/presentation/controllers/reciter_controller.dart';
 import '../../features/home/presentation/controllers/prayer_times_controller.dart';
-//import '../../features/statistics/data/datasources/statistics_local_datasource.dart';
-//import '../../features/statistics/data/repositories/statistics_repository_impl.dart';
-//import '../../features/statistics/domain/repositories/statistics_repository.dart';
-//import '../../features/statistics/domain/usecases/statistics_usecases.dart';
-//import '../../features/statistics/presentation/controllers/statistics_controller.dart';
+import '../network/connectivity_controller.dart';
 import '../network/dio_client.dart';
 import '../storage/local_storage_service.dart';
 
+/// Service locator for the **infrastructure and domain layers only**:
+/// storage, data sources, repositories, use cases, and stateless services.
+///
+/// Presentation-layer controllers live exclusively in GetX (`Get.put` /
+/// `Get.find`) — see [_registerControllers]. Keeping each type in exactly one
+/// container removes the old dual-registration hazard where `sl<T>()` and
+/// `Get.find<T>()` could resolve to different instances.
 final sl = GetIt.instance;
 
 void setupDependencies(LocalStorageService storage) {
-  // Local storage — core primitive shared across features (privacy-friendly,
-  // on-device only). Registered first so datasources/controllers can depend on it.
+  // --- Core primitives ---------------------------------------------------
   sl.registerSingleton<LocalStorageService>(storage);
 
-  // Data sources
+  // --- Data sources (Dio injected, not reached for globally) -------------
   sl.registerLazySingleton<ReciterRemoteDataSource>(
-    () => ReciterRemoteDataSourceImpl(),
+    () => ReciterRemoteDataSourceImpl(DioClient.instance),
   );
   sl.registerLazySingleton<SurahRemoteDataSource>(
-    () => SurahRemoteDataSourceImpl(),
+    () => SurahRemoteDataSourceImpl(DioClient.instance),
   );
   sl.registerLazySingleton<AyahLocalDataSource>(
     () => AyahLocalDataSourceImpl(),
@@ -55,7 +57,7 @@ void setupDependencies(LocalStorageService storage) {
     () => DailyAyahRemoteDataSourceImpl(),
   );
 
-  // Repositories
+  // --- Repositories ------------------------------------------------------
   sl.registerLazySingleton<ReciterRepository>(
     () => ReciterRepositoryImpl(sl(), storage),
   );
@@ -67,72 +69,49 @@ void setupDependencies(LocalStorageService storage) {
     () => DailyAyahRepositoryImpl(sl()),
   );
 
-  // Use cases
+  // --- Use cases ---------------------------------------------------------
   sl.registerLazySingleton(() => GetReciters(sl()));
   sl.registerLazySingleton(() => GetSuwar(sl()));
   sl.registerLazySingleton(() => GetAyat(sl()));
   sl.registerLazySingleton(() => GetDailyAyah(sl()));
 
-  // Statistics — local datasource, repo, use cases, controller
-  // sl.registerLazySingleton<StatisticsLocalDataSource>(
-  //     () => StatisticsLocalDataSourceImpl(sl()));
-  // sl.registerLazySingleton<StatisticsRepository>(
-  //     () => StatisticsRepositoryImpl(sl()));
-  // sl.registerLazySingleton(() => GetStatistics(sl()));
-  // sl.registerLazySingleton(() => RecordSession(sl()));
-  // sl.registerLazySingleton(() => UpdateStreak(sl()));
-  // sl.registerLazySingleton(() => AddListeningTime(sl()));
-  // sl.registerLazySingleton(() => UpdateSurahProgress(sl()));
-  // sl.registerLazySingleton(() => UnlockAchievement(sl()));
-  // sl.registerLazySingleton(() => UpdateAchievementProgress(sl()));
-  // Get.put(StatisticsController(
-  //   sl<GetStatistics>(),
-  //   sl<RecordSession>(),
-  //   sl<UpdateStreak>(),
-  //   sl<AddListeningTime>(),
-  //   sl<UpdateSurahProgress>(),
-  //   sl<UnlockAchievement>(),
-  //   sl<UpdateAchievementProgress>(),
-  // ), permanent: true);
-
-  // Downloads — permanent singleton (GetIt + GetX). Registered before the
-  // audio controller so playback can prefer a downloaded local file over the
-  // remote stream. The file service is a stateless I/O helper.
+  // --- Stateless services ------------------------------------------------
   sl.registerLazySingleton(() => DownloadFileService(DioClient.instance));
-  final downloads = DownloadController(storage, sl<DownloadFileService>());
-  sl.registerSingleton(downloads);
-  Get.put(downloads, permanent: true);
 
-  // Audio — permanent singleton registered in both GetIt and GetX so it
-  // survives navigation and is accessible via Get.find<AudioController>().
-  final audio = AudioController(storage);
-  sl.registerSingleton(audio);
-  Get.put(audio, permanent: true);
+  _registerControllers(storage);
+}
 
-  // Bookmarks — permanent singleton (GetIt + GetX) since ayahs are saved from
-  // multiple screens, not just the Saved tab.
-  final bookmarks = BookmarksController(storage);
-  sl.registerSingleton(bookmarks);
-  Get.put(bookmarks, permanent: true);
+/// Permanent GetX controllers. These are the app-wide singletons that must
+/// survive navigation; screen-scoped controllers are created by their route
+/// bindings instead.
+void _registerControllers(LocalStorageService storage) {
+  // Connectivity first: it powers the app-wide offline banner and drives an
+  // opportunistic re-fetch of network screens the moment signal returns.
+  Get.put(ConnectivityController(), permanent: true);
 
-  // Settings — permanent singleton (GetIt + GetX); preferences are read
-  // app-wide.
-  final settings = SettingsController(storage);
-  sl.registerSingleton(settings);
-  Get.put(settings, permanent: true);
+  // Downloads first: the audio controller prefers a downloaded local file over
+  // the remote stream, so this must exist before playback starts.
+  Get.put(DownloadController(storage, sl<DownloadFileService>()),
+      permanent: true);
 
-  // Reciters — permanent singleton (GetX) since the directory is shown on both
-  // the Home tab ("Popular Reciters") and the dedicated Reciters page. Kept in
-  // GetX so both find the same instance regardless of the active route binding.
+  // Audio — permanent so playback survives navigation between the player and tabs.
+  Get.put(AudioController(storage), permanent: true);
+
+  // Bookmarks — ayahs are saved from multiple screens, not just the Saved tab.
+  Get.put(BookmarksController(storage), permanent: true);
+
+  // Settings — preferences are read app-wide.
+  Get.put(SettingsController(storage), permanent: true);
+
+  // Reciters — shown on both Home ("Popular Reciters") and the Reciters page.
   Get.put(ReciterController(sl<GetReciters>()), permanent: true);
 
-  // Prayer Times — permanent singleton for Home tab
+  // Prayer Times — Home tab.
   Get.put(PrayerTimesController(storage), permanent: true);
 
-  // Daily Ayah — permanent singleton for Home daily ayah card.
+  // Daily Ayah — Home daily ayah card.
   Get.put(DailyAyahController(sl<GetDailyAyah>()), permanent: true);
 
-  // Reflections — permanent singleton (GetX); the saved-notes collection is
-  // read and written from the daily-reflection, add-reflection, and list pages.
+  // Reflections — read/written from daily-reflection, add-reflection, and list.
   Get.put(ReflectionsController(storage), permanent: true);
 }

@@ -1,8 +1,8 @@
-import 'package:QariVerse/features/audio_player/presentation/pages/audio_player_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/widgets/widgets.dart';
 import 'main_shell_controller.dart';
+import '../../features/audio_player/presentation/pages/audio_player_page.dart';
 import '../../features/bookmarks/presentation/pages/bookmarks_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/downloads/presentation/pages/download_center_page.dart';

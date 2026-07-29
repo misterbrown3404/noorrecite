@@ -6,6 +6,7 @@ import 'package:quran/quran.dart' as quran;
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/duration_format.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../downloads/presentation/controllers/download_controller.dart';
 import '../../domain/entities/audio_track.dart';
@@ -45,9 +46,17 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
     super.initState();
     _audio = Get.find<AudioController>();
     _downloads = Get.find<DownloadController>();
-    if (_audio.queue.isEmpty) {
-      _audio.resumeLastSession();
-    }
+    // Resume after the first frame: this page is materialized lazily during a
+    // build/layout pass, and resumeLastSession synchronously mutates reactive
+    // state (queue/error) via setQueue. Mutating an observable while the
+    // framework is still building would mark a live Obx dirty mid-build and
+    // throw. Deferring to the post-frame callback runs it once building is done.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_audio.queue.isEmpty) {
+        _audio.resumeLastSession();
+      }
+    });
     _waveformController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -68,6 +77,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
     _waveformController.dispose();
     super.dispose();
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -404,8 +414,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(_formatDuration(pos), style: AppTypography.labelSemibold),
-                Text(_formatDuration(dur), style: AppTypography.labelSemibold),
+                Text(DurationFormat.clock(pos), style: AppTypography.labelSemibold),
+                Text(DurationFormat.clock(dur), style: AppTypography.labelSemibold),
               ],
             ),
           ),
@@ -544,12 +554,6 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
       );
     });
   }
-
-  String _formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
 }
 
 class _QueueSheet extends StatelessWidget {
@@ -613,7 +617,7 @@ class _QueueSheet extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Text(
-                      'Surah ${track.surahName} � ${track.reciterName}',
+                      'Surah ${track.surahName} • ${track.reciterName}',
                       style: AppTypography.bodyEnSm.copyWith(
                         color: AppColors.onSurfaceVariant,
                       ),
@@ -621,7 +625,7 @@ class _QueueSheet extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     onTap: () {
-                      audio.setQueue(audio.queue, startIndex: index);
+                      audio.playAt(index);
                       Navigator.pop(context);
                     },
                   );

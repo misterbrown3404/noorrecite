@@ -23,7 +23,7 @@ class DownloadCenterPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Downloads', style: AppTypography.titleLg),
+        title: const Text('Downloads'),
         actions: [
           HeaderIconAction(
             icon: Icons.settings_rounded,

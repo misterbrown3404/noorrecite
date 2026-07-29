@@ -1,12 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-//import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../settings/presentation/controllers/settings_controller.dart';
 import '../../../../core/storage/local_storage_service.dart';
+import '../../../../core/services/notification_service.dart';
 
 /// Settings screen with profile header and app settings.
 class SettingsPage extends StatelessWidget {
@@ -17,13 +18,7 @@ class SettingsPage extends StatelessWidget {
     final settings = Get.find<SettingsController>();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings', style: AppTypography.titleLg),
-        // actions: [
-        //   HeaderIconAction(
-        //    // icon: Icons.search,
-        //    // onTap: () => Get.toNamed(AppRoutes.search),
-        //   ),
-        // ],
+        title: const Text('Settings',),
       ),
       body: GeometricBackground(
         child: SafeArea(
@@ -165,6 +160,41 @@ class SettingsPage extends StatelessWidget {
                           ),
                         ],
                       ),
+                      // TEMPORARY — remove before Play Store upload. Only
+                      // compiled into debug builds (kDebugMode), so release
+                      // builds never show it.
+                      if (kDebugMode)
+                        _SettingSection(
+                          title: 'DEVELOPER (DEBUG ONLY)',
+                          children: [
+                            _SettingRow(
+                              icon: Icons.volume_up_rounded,
+                              title: 'Test Adhan Now',
+                              subtitle: const Text(
+                                'Fire the prayer notification immediately',
+                              ),
+                              onTap: () async {
+                                final diag = await NotificationService.instance
+                                    .debugFireAdhanNow();
+                                Get.dialog(
+                                  AlertDialog(
+                                    title: const Text('Adhan test fired'),
+                                    content: Text(
+                                      'Check the notification & listen for the '
+                                      'adhan.\n\n$diag',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: Get.back,
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -193,17 +223,21 @@ void _showLanguageDialog(SettingsController settings) {
     AlertDialog(
       title: const Text('Choose Language'),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: kSupportedLanguages.entries.map((e) => RadioListTile<String>(
-            title: Text(e.value),
-            value: e.key,
-            groupValue: settings.language.value,
-            onChanged: (v) {
-              if (v != null) settings.setLanguage(v);
-              Get.back();
-            },
-          )).toList(),
+        child: RadioGroup<String>(
+          groupValue: settings.language.value,
+          onChanged: (v) {
+            if (v != null) settings.setLanguage(v);
+            Get.back();
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: kSupportedLanguages.entries
+                .map((e) => RadioListTile<String>(
+                      title: Text(e.value),
+                      value: e.key,
+                    ))
+                .toList(),
+          ),
         ),
       ),
     ),
@@ -214,37 +248,29 @@ void _showThemeDialog(SettingsController settings) {
   Get.dialog(
     AlertDialog(
       title: const Text('Choose Theme'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          RadioListTile<String>(
-            title: const Text('Light'),
-            value: 'light',
-            groupValue: settings.themeMode.value,
-            onChanged: (v) {
-              if (v != null) settings.setThemeMode(v);
-              Get.back();
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('Dark'),
-            value: 'dark',
-            groupValue: settings.themeMode.value,
-            onChanged: (v) {
-              if (v != null) settings.setThemeMode(v);
-              Get.back();
-            },
-          ),
-          RadioListTile<String>(
-            title: const Text('System Default'),
-            value: 'system',
-            groupValue: settings.themeMode.value,
-            onChanged: (v) {
-              if (v != null) settings.setThemeMode(v);
-              Get.back();
-            },
-          ),
-        ],
+      content: RadioGroup<String>(
+        groupValue: settings.themeMode.value,
+        onChanged: (v) {
+          if (v != null) settings.setThemeMode(v);
+          Get.back();
+        },
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<String>(
+              title: Text('Light'),
+              value: 'light',
+            ),
+            RadioListTile<String>(
+              title: Text('Dark'),
+              value: 'dark',
+            ),
+            RadioListTile<String>(
+              title: Text('System Default'),
+              value: 'system',
+            ),
+          ],
+        ),
       ),
     ),
   );

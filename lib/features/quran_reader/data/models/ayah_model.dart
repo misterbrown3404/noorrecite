@@ -11,7 +11,7 @@ class AyahModel extends Ayah {
   });
 
   /// Builds an ayah straight from the offline `quran` package data
-  /// (Saheeh International translation — the app default).
+  /// (Clear Quran translation — the app default).
   factory AyahModel.fromQuran(int surahId, int verse) => AyahModel(
         surahId: surahId,
         number: verse,
@@ -19,7 +19,7 @@ class AyahModel extends Ayah {
         translation: quran.getVerseTranslation(
           surahId,
           verse,
-          translation: quran.Translation.enSaheeh,
+          translation: quran.Translation.enClearQuran,
         ),
       );
 }

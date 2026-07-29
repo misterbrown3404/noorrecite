@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/failures.dart';
 import '../../../../core/network/api_endpoints.dart';
-import '../../../../core/network/dio_client.dart';
 import '../models/surah_model.dart';
 import '../../domain/entities/surah.dart';
 
@@ -10,7 +10,9 @@ abstract interface class SurahRemoteDataSource {
 }
 
 class SurahRemoteDataSourceImpl implements SurahRemoteDataSource {
-  final Dio _dio = DioClient.instance;
+  SurahRemoteDataSourceImpl(this._dio);
+
+  final Dio _dio;
 
   @override
   Future<List<Surah>> getSuwar({String language = 'eng'}) async {
@@ -18,11 +20,17 @@ class SurahRemoteDataSourceImpl implements SurahRemoteDataSource {
       ApiEndpoints.suwar,
       queryParameters: {'language': language},
     );
-    final list = response.data['suwar'] as List;
+
+    final data = response.data;
+    if (data is! Map || data['suwar'] is! List) {
+      throw const DataFormatException('suwar: missing "suwar" list');
+    }
+    final list = data['suwar'] as List;
     // Explicit <Surah> element type so the runtime list is List<Surah>, not
     // List<SurahModel> — avoids reified-generic mismatches downstream.
     return list
-        .map<Surah>((e) => SurahModel.fromJson(e as Map<String, dynamic>))
+        .whereType<Map<String, dynamic>>()
+        .map<Surah>(SurahModel.fromJson)
         .toList();
   }
 }

@@ -17,6 +17,10 @@ class PrayerTimesController extends GetxController {
 
   final allPrayerTimes = <PrayerTimeInfo>[].obs;
   final nextPrayer = Rxn<PrayerTimeInfo>();
+  /// Live countdown to [nextPrayer], updated once per second. Kept separate
+  /// from [nextPrayer] so the per-second tick repaints only the small countdown
+  /// label (a leaf `Obx`) instead of rebuilding the entire prayer card.
+  final remaining = Duration.zero.obs;
   final isLoading = true.obs;
   final error = ''.obs;
 
@@ -146,6 +150,7 @@ class PrayerTimesController extends GetxController {
     final updated = prayers.map((p) => p.time == next!.time ? next : p).toList();
     allPrayerTimes.assignAll(updated);
     nextPrayer.value = next;
+    remaining.value = next.time.difference(now);
   }
 
   void _startTimer() {
@@ -153,15 +158,17 @@ class PrayerTimesController extends GetxController {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final np = nextPrayer.value;
       if (np == null) return;
-      final remaining = np.time.difference(DateTime.now());
-      if (remaining.isNegative) {
+      final rem = np.time.difference(DateTime.now());
+      if (rem.isNegative) {
         final crossed = np.name;
         final lat = _storage.read<double>(StorageKeys.lastLat);
         final lng = _storage.read<double>(StorageKeys.lastLng);
         if (lat != null && lng != null) _compute(lat, lng);
         _onPrayerReached(crossed);
       } else {
-        nextPrayer.update((p) => p!.timeRemaining = remaining);
+        // Only the countdown ticks — the card shell (bound to nextPrayer) stays
+        // put, so this repaints just the leaf countdown label.
+        remaining.value = rem;
       }
     });
   }
@@ -188,17 +195,17 @@ class PrayerTimesController extends GetxController {
   }
 
   bool get _notificationsEnabled {
-    final settings = Get.isRegistered<SettingsController>()
-        ? Get.find<SettingsController>()
-        : null;
-    return settings?.notificationsEnabled.value ?? false;
-  }
-
-  String formatDuration(Duration d) {
-    final h = d.inHours.toString().padLeft(2, '0');
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$h:$m:$s';
+    // Prefer the live controller when it's registered; otherwise fall back to
+    // the persisted settings blob. Reading storage directly avoids a startup
+    // race: _syncNotifications runs during onInit and SettingsController may
+    // not be registered yet, in which case the old code returned false and
+    // silently cancelled every prayer notification. Default matches
+    // SettingsController's own default of true.
+    if (Get.isRegistered<SettingsController>()) {
+      return Get.find<SettingsController>().notificationsEnabled.value;
+    }
+    final saved = _storage.readJson(StorageKeys.settings);
+    return (saved?['notificationsEnabled'] as bool?) ?? true;
   }
 
   Future<void> loadPrayerTimes() => _loadFromCacheThenRefresh();
@@ -221,7 +228,7 @@ class PrayerTimeInfo {
   final String name;
   final DateTime time;
   final bool isNext;
-  Duration timeRemaining;
+  final Duration timeRemaining;
 
   String get formattedTime {
     final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;

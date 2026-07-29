@@ -155,6 +155,10 @@ class _AddReflectionPageState extends State<AddReflectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add Reflection'),
+        
+      ),
       body: GeometricBackground(
         child: SafeArea(
           bottom: false,

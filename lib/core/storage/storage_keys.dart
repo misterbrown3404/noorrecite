@@ -36,4 +36,9 @@ abstract final class StorageKeys {
   /// Enumerable collection of saved reflections (JSON list), so the
   /// reflections list can render real entries with reference + timestamp.
   static const String reflections = 'reflections';
+
+  // Remote-list caches. Language-scoped so switching language doesn't serve
+  // the wrong locale's cached copy.
+  static String recitersCache(String language) => 'cache_reciters_$language';
+  static String suwarCache(String language) => 'cache_suwar_$language';
 }

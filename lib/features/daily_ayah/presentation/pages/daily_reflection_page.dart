@@ -21,7 +21,7 @@ class DailyReflectionPage extends StatelessWidget {
     final controller = Get.find<DailyAyahController>();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Daily Reflection', style: AppTypography.titleLg),
+        title:const Text('Daily Reflection'),
       ),
       body: GeometricBackground(
         child: Stack(

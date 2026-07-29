@@ -5,19 +5,25 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <!-- Streaming audio requires network access. -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Location permissions for prayer time calculation. -->
+    <!-- connectivity_plus reads the active network interface for the offline banner. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Location permissions for prayer time calculation (foreground only). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <!-- Local notifications (Android 13+). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Prayer notifications vibrate the device. -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- Reschedule prayer alarms after a reboot (alarms are cleared on restart). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- Exact alarm scheduling for prayer time notifications (Android 12+). -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
 
     <application
-        android:label="noorrecite"
+        android:label="Qari Verse"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

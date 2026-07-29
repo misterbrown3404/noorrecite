@@ -1,4 +1,4 @@
-name: Qariverse
+name: qari_verse
 description: "QariVerse - A premium Quranic experience app"
 publish_to: 'none'
 version: 1.0.0+1
@@ -32,7 +32,10 @@ dependencies:
   shimmer: 
 
   # Quran Content
-  quran: 
+  quran:
+    git:
+      url: https://github.com/misterbrown3404/quran-1.4.1
+      ref: main
   flutter_widget_from_html_core: 
 
   # Prayer Times & Hijri
@@ -54,8 +57,9 @@ dependencies:
 
   # Local Storage
   shared_preferences:
-  hive: 
+  hive:
   hive_flutter:
+  flutter_secure_storage:
 
   # Networking
   dio: 
@@ -76,7 +80,8 @@ dependencies:
   share_plus: 
   device_info_plus: 
   package_info_plus: 
-  permission_handler: 
+  permission_handler:
+  change_app_package_name: ^1.5.0
 
   # Monetization
   purchases_flutter: 
@@ -91,10 +96,15 @@ dev_dependencies:
 
 # App launcher icon generated from the brand logo. Run:
 #   dart run flutter_launcher_icons
+# adaptive_icon_* produce the Android 8+ layered icon the launcher can mask
+# into a circle/squircle. Without them Android shows the legacy PNG un-masked
+# (square). The green matches the logo's gradient so the masked edges blend.
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
   image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#175C46"
+  adaptive_icon_foreground: "assets/images/logo.png"
   remove_alpha_ios: true
 
 flutter:
@@ -125,4 +135,4 @@ flutter:
         - asset: assets/google_fonts/Inter-Medium.ttf
         - asset: assets/google_fonts/Inter-SemiBold.ttf
           weight: 700
-          
+         

@@ -26,6 +26,16 @@ class SurahController extends GetxController {
   /// Active search query; filters [filteredSuwar] by name or id.
   final searchQuery = ''.obs;
 
+  /// Debounced, normalized (trimmed + lowercased) query. Filtering reads this
+  /// rather than [searchQuery] so we don't re-scan all 114 surahs on every
+  /// keystroke — only ~250ms after the user stops typing.
+  final _debouncedQuery = ''.obs;
+
+  /// Precomputed lowercase search haystack per surah, keyed by surah id:
+  /// `"<name> <revelationLabel>"`. Built once per load so the search loop
+  /// never calls `toLowerCase()` per surah per keystroke.
+  final _searchIndex = <int, String>{};
+
   /// Most recently opened surah, restored from local storage on startup.
   final Rxn<LastRead> lastRead = Rxn<LastRead>();
 
@@ -33,25 +43,19 @@ class SurahController extends GetxController {
 
   /// Returns [suwar] narrowed by both the active [filter] and [searchQuery].
   List<Surah> get filteredSuwar {
-    final results = List<Surah>.from(suwar);
+    final filtered = _applyFilter(suwar);
 
-    // Apply filter.
-    final filtered = _applyFilter(results);
+    final query = _debouncedQuery.value;
+    if (query.isEmpty) return filtered;
 
-    // Apply search.
-    final query = searchQuery.value.trim().toLowerCase();
-    if (query.isNotEmpty) {
-      return filtered
-          .where(
-            (s) =>
-                s.name.toLowerCase().contains(query) ||
-                s.id.toString() == query ||
-                s.revelationLabel.toLowerCase().contains(query),
-          )
-          .toList();
+    final result = <Surah>[];
+    for (final s in filtered) {
+      if ((_searchIndex[s.id]?.contains(query) ?? false) ||
+          s.id.toString() == query) {
+        result.add(s);
+      }
     }
-
-    return filtered;
+    return result;
   }
 
   List<Surah> _applyFilter(List<Surah> source) {
@@ -81,6 +85,11 @@ class SurahController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    debounce(
+      searchQuery,
+      (String q) => _debouncedQuery.value = q.trim().toLowerCase(),
+      time: const Duration(milliseconds: 250),
+    );
     _restoreLastRead();
     fetchSuwar();
   }
@@ -116,7 +125,19 @@ class SurahController extends GetxController {
     final result = await _getSuwar();
     result.fold(
       (f) => error(f.message),
-      (data) => suwar.assignAll(data),
+      (data) {
+        suwar.assignAll(data);
+        _searchIndex
+          ..clear()
+          ..addEntries(
+            data.map(
+              (s) => MapEntry(
+                s.id,
+                '${s.name} ${s.revelationLabel}'.toLowerCase(),
+              ),
+            ),
+          );
+      },
     );
     isLoading(false);
   }

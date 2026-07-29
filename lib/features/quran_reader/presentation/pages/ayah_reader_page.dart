@@ -19,7 +19,6 @@ class AyahReaderPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           controller.surah.value?.name ?? '',
-          style: AppTypography.titleLg,
         ),
         actions: [
           HeaderIconAction(
@@ -55,11 +54,15 @@ class AyahReaderPage extends StatelessWidget {
                   final surahLatin = surahId > 0
                       ? quran.getSurahName(surahId)
                       : '';
+                  final bismillah = surahId > 0
+                      ? quran.getBismillah(surahId)
+                      : null;
+
                   return ListView(
                     padding: const EdgeInsets.only(bottom: 120),
                     children: [
-                     //if (surahId != 9) Shrink(),
                       const SizedBox(height: AppSpacing.md),
+                      if (bismillah != null) _BismillahHeader(text: bismillah),
                       ...controller.ayat.map(
                         (a) => Padding(
                           padding: EdgeInsets.fromLTRB(
@@ -83,7 +86,27 @@ class AyahReaderPage extends StatelessWidget {
   }
 }
 
+class _BismillahHeader extends StatelessWidget {
+  const _BismillahHeader({required this.text});
+  final String text;
 
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.margin,
+        0,
+        AppSpacing.margin,
+        AppSpacing.md,
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
+    );
+  }
+}
 
 class _AyahRow extends StatelessWidget {
   const _AyahRow({required this.ayah, required this.surahLatin});

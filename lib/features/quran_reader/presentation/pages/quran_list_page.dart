@@ -9,7 +9,7 @@ import '../../domain/entities/surah.dart';
 import '../controllers/surah_controller.dart';
 
 /// Quran surah list: search, filter chips, a "Last Read" hero, then a
-/// responsive asymmetric grid of surah cards with a bottom mini-player.
+/// responsive asymmetric grid of surah cards.
 class QuranListPage extends StatelessWidget {
   const QuranListPage({super.key});
 
@@ -25,7 +25,7 @@ class QuranListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Quran', style: AppTypography.titleLg),
+        title: const Text('Quran'),
         actions: [
           HeaderIconAction(
             icon: Icons.settings_rounded,

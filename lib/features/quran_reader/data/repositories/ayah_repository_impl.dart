@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 
+import '../../../../core/error/crash_reporter.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/ayah.dart';
 import '../../domain/repositories/ayah_repository.dart';
@@ -14,9 +15,10 @@ class AyahRepositoryImpl implements AyahRepository {
     try {
       final ayat = await _local.getAyat(surahId);
       return Right(ayat);
-    } catch (e) {
+    } catch (e, s) {
       // Source is on-device/offline — any failure is a local read issue.
-      return Left(CacheFailure(e.toString()));
+      CrashReporter.instance.recordError(e, s, reason: 'getAyat($surahId)');
+      return const Left(CacheFailure('Could not load this surah. Please try again.'));
     }
   }
 }

@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
 
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
+import '../../../../core/utils/app_mappers.dart';
 
 /// Popular mp3quran.net language codes → display names.
 const Map<String, String> kSupportedLanguages = {
@@ -74,7 +74,7 @@ class SettingsController extends GetxController {
   Future<void> setThemeMode(String value) async {
     themeMode.value = value;
     await _persist();
-    Get.changeThemeMode(_themeModeFromString(value));
+    Get.changeThemeMode(AppMappers.themeModeFromString(value));
   }
 
   Future<void> setOfflineMode(bool value) async {
@@ -86,8 +86,7 @@ class SettingsController extends GetxController {
     language.value = code;
     await _persist();
     // Update app locale so RTL languages (Arabic, Urdu) flip layout.
-    final locale = _localeFromCode(code);
-    Get.updateLocale(locale);
+    Get.updateLocale(AppMappers.localeFromCode(code));
   }
 
   Future<void> _persist() => _storage.writeJson(StorageKeys.settings, {
@@ -97,25 +96,4 @@ class SettingsController extends GetxController {
         'offlineMode': offlineMode.value,
         'language': language.value,
       });
-
-  ThemeMode _themeModeFromString(String value) {
-    switch (value) {
-      case 'light': return ThemeMode.light;
-      case 'dark':  return ThemeMode.dark;
-      default:      return ThemeMode.system;
-    }
-  }
-
-  Locale _localeFromCode(String code) {
-    switch (code) {
-      case 'ara': return const Locale('ar');
-      case 'fra': return const Locale('fr');
-      case 'urd': return const Locale('ur');
-      case 'ind': return const Locale('id');
-      case 'mly': return const Locale('ms');
-      case 'tur': return const Locale('tr');
-      case 'rus': return const Locale('ru');
-      default:    return const Locale('en');
-    }
-  }
 }

@@ -15,6 +15,15 @@ class ReflectionsListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Reflections List'),
+        // actions: [
+        //   HeaderIconAction(
+        //     icon: Icons.settings_rounded,
+        //     onTap: () => Get.toNamed(AppRoutes.settings),
+        //   ),
+        // ],
+      ),
       body: GeometricBackground(
         child: SafeArea(
           bottom: false,

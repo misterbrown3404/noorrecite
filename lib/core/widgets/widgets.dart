@@ -19,6 +19,7 @@ export 'floating_nav_dock.dart';
 export 'geometric_background.dart';
 export 'glass_card.dart';
 export 'neu_button.dart';
+export 'offline_banner.dart';
 export 'phone_frame.dart';
 export 'pill_tag.dart';
 export 'section_header.dart';

@@ -6,7 +6,8 @@ import '../core/di/service_locator.dart';
 import '../core/storage/local_storage_service.dart';
 import '../core/storage/storage_keys.dart';
 import '../core/theme/app_theme.dart';
-import '../core/widgets/phone_frame.dart';
+import '../core/utils/app_mappers.dart';
+import '../core/widgets/widgets.dart';
 import '../l10n/app_localizations.dart';
 import 'routes/app_pages.dart';
 
@@ -14,33 +15,14 @@ import 'routes/app_pages.dart';
 class QariVerseApp extends StatelessWidget {
   const QariVerseApp({super.key});
 
-  static Locale _localeFromCode(String code) {
-    switch (code) {
-      case 'ara': return const Locale('ar');
-      case 'fra': return const Locale('fr');
-      case 'urd': return const Locale('ur');
-      case 'ind': return const Locale('id');
-      case 'mly': return const Locale('ms');
-      case 'tur': return const Locale('tr');
-      case 'rus': return const Locale('ru');
-      default:    return const Locale('en');
-    }
-  }
-
-  static ThemeMode _themeModeFromString(String value) {
-    switch (value) {
-      case 'light': return ThemeMode.light;
-      case 'dark':  return ThemeMode.dark;
-      default:      return ThemeMode.system;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final storage = sl<LocalStorageService>();
     final saved = storage.readJson(StorageKeys.settings);
-    final initialLocale = _localeFromCode((saved?['language'] as String?) ?? 'eng');
-    final initialThemeMode = _themeModeFromString((saved?['themeMode'] as String?) ?? 'system');
+    final initialLocale =
+        AppMappers.localeFromCode((saved?['language'] as String?) ?? 'eng');
+    final initialThemeMode = AppMappers
+        .themeModeFromString((saved?['themeMode'] as String?) ?? 'system');
 
     return GetMaterialApp(
       title: 'QariVerse',
@@ -67,7 +49,17 @@ class QariVerseApp extends StatelessWidget {
       ],
       initialRoute: AppPages.initial,
       getPages: AppPages.routes,
-      builder: (context, child) => PhoneFrame(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => PhoneFrame(
+        // Offline banner lives above the Navigator so it spans every route,
+        // collapsing to nothing while online. Column (not Stack) so it pushes
+        // content down rather than covering an AppBar when it appears.
+        child: Column(
+          children: [
+            const OfflineBanner(),
+            Expanded(child: child ?? const SizedBox.shrink()),
+          ],
+        ),
+      ),
     );
   }
 }

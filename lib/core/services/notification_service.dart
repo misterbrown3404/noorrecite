@@ -1,4 +1,5 @@
 import 'package:adhan/adhan.dart' as adhan;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -20,8 +21,10 @@ class NotificationService {
   // Channel id is versioned: an Android notification channel's sound is fixed
   // at creation and immutable afterward, so switching to the adhan sound
   // requires a fresh id. Bump the suffix if the sound/behaviour changes again.
-  static const _prayerChannelId = 'prayer_times_adhan_v1';
-  static const _legacyPrayerChannelId = 'prayer_times';
+  static const _prayerChannelId = 'prayer_times_adhan_v2';
+  // Old channel ids to clean up. A channel's sound is immutable after creation,
+  // so each sound change ships a NEW id and retires the previous one here.
+  static const _legacyPrayerChannelIds = ['prayer_times', 'prayer_times_adhan_v1'];
   static const _reflectionChannelId = 'daily_reflection';
   static const _reflectionId = 100;
 
@@ -77,7 +80,9 @@ class NotificationService {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) return; // iOS / other platforms
-    await android.deleteNotificationChannel(channelId: _legacyPrayerChannelId);
+    for (final id in _legacyPrayerChannelIds) {
+      await android.deleteNotificationChannel(channelId: id);
+    }
     await android.createNotificationChannel(
       const AndroidNotificationChannel(
         _prayerChannelId,
@@ -244,4 +249,103 @@ class NotificationService {
   }
 
   Future<void> cancelDailyReflection() => _plugin.cancel(id: _reflectionId);
+
+  // ---------------------------------------------------------------------------
+  // TEMPORARY — manual adhan test. Remove before Play Store upload.
+  // A notification channel's sound is immutable after creation, so a stale
+  // channel from an earlier build silently swallows the adhan. To sidestep that
+  // entirely, this test creates a BRAND-NEW uniquely-named channel every run and
+  // fires on it — so what you hear reflects the current code, not a cached
+  // channel. If this is silent, the cause is the device (alarm-stream volume or
+  // Do Not Disturb), not the app: the adhan plays on the alarm stream.
+  //
+  // Returns a short human-readable diagnostic (alarm volume + DND state) so a
+  // silent adhan can be attributed to the device at a glance.
+  // ---------------------------------------------------------------------------
+  static const _audioDiagChannel =
+      MethodChannel('com.nurehub.qariverse/audio_diag');
+
+  Future<String> debugFireAdhanNow() async {
+    await requestPermission();
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    // Unique id => guaranteed fresh channel that carries the adhan sound.
+    final testChannelId = 'adhan_test_${DateTime.now().millisecondsSinceEpoch}';
+    if (android != null) {
+      await android.createNotificationChannel(
+        AndroidNotificationChannel(
+          testChannelId,
+          'Adhan Test',
+          description: 'Temporary channel for manually testing the adhan sound',
+          importance: Importance.max,
+          sound: const RawResourceAndroidNotificationSound('adhan'),
+          playSound: true,
+          audioAttributesUsage: AudioAttributesUsage.alarm,
+        ),
+      );
+    }
+
+    await _plugin.show(
+      id: 999,
+      title: 'Test — Adhan',
+      body: 'You should hear the adhan now (plays on the alarm volume stream).',
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          testChannelId,
+          'Adhan Test',
+          channelDescription:
+              'Temporary channel for manually testing the adhan sound',
+          importance: Importance.max,
+          priority: Priority.max,
+          sound: const RawResourceAndroidNotificationSound('adhan'),
+          playSound: true,
+          audioAttributesUsage: AudioAttributesUsage.alarm,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentSound: true,
+        ),
+      ),
+      payload: '$_adhanPayload:Test',
+    );
+
+    // Also play the bundled asset in-app as a belt-and-suspenders check. On
+    // Android this is a no-op (see AdhanAudioService); on iOS it plays the full
+    // adhan, since iOS caps notification sounds at ~30s.
+    await AdhanAudioService.instance.play();
+
+    return _debugAudioDiagnostics();
+  }
+
+  /// Reads the device's alarm-stream volume and Do Not Disturb state via the
+  /// native platform channel (Android only). Used purely for the debug adhan
+  /// test to explain a silent adhan. Never throws.
+  Future<String> _debugAudioDiagnostics() async {
+    try {
+      final result = await _audioDiagChannel
+          .invokeMapMethod<String, dynamic>('getAudioDiagnostics');
+      if (result == null) return 'Diagnostics unavailable on this platform.';
+      final vol = result['alarmVolume'];
+      final max = result['alarmMax'];
+      final dnd = result['dndFilter'];
+      final muted = (vol is int && vol == 0);
+      final buffer = StringBuffer()
+        ..writeln('Alarm volume: $vol / $max${muted ? '  ⚠ MUTED' : ''}')
+        ..write('Do Not Disturb: $dnd');
+      if (muted) {
+        buffer.write('\n\nTurn UP the alarm volume — the adhan is silent '
+            'because the alarm stream is at 0.');
+      } else if (dnd is String && dnd.contains('None')) {
+        buffer.write('\n\nDND is set to total silence — it is blocking the '
+            'adhan. Turn DND off or allow alarms.');
+      }
+      return buffer.toString();
+    } on PlatformException catch (e) {
+      return 'Diagnostics error: ${e.message}';
+    } catch (_) {
+      return 'Diagnostics unavailable.';
+    }
+  }
+
 }
