@@ -18,7 +18,7 @@ class RecitersPage extends StatelessWidget {
     final controller = Get.find<ReciterController>();
     return Scaffold(
       appBar: AppBar(
-        title:const Text('Reciters'),
+        title: const Text('Reciters'),
         actions: [
           HeaderIconAction(
             icon: Icons.settings_rounded,
@@ -85,11 +85,13 @@ class RecitersPage extends StatelessWidget {
     );
   }
 
+  // Taller cards than before (0.68 -> 0.58) to make room for a 2-line name
+  // and a full, unwrapped rewayat pill instead of truncating either.
   static const _gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
     crossAxisCount: 2,
     mainAxisSpacing: AppSpacing.md,
     crossAxisSpacing: AppSpacing.md,
-    childAspectRatio: 0.68,
+    childAspectRatio: 0.58,
   );
 
   static const _gridPadding = EdgeInsets.fromLTRB(
@@ -134,6 +136,8 @@ class _ReciterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageAsset = AppAssets.reciterImage(reciter.id);
+    final moshafName = reciter.primaryMoshaf?.name ?? '';
+
     return PressableScale(
       onTap: () => _play(reciter),
       child: GlassCard(
@@ -148,8 +152,8 @@ class _ReciterCard extends StatelessWidget {
               alignment: Alignment.topRight,
               children: [
                 Container(
-                  width: 88,
-                  height: 88,
+                  width: 76,
+                  height: 76,
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -169,7 +173,7 @@ class _ReciterCard extends StatelessWidget {
                     ),
                     child: imageAsset != null
                         ? ClipRRect(
-                            borderRadius: BorderRadius.circular(44),
+                            borderRadius: BorderRadius.circular(38),
                             child: Image.asset(
                               imageAsset,
                               fit: BoxFit.cover,
@@ -178,14 +182,14 @@ class _ReciterCard extends StatelessWidget {
                               errorBuilder: (_, _, _) => const Icon(
                                 Icons.person_rounded,
                                 color: AppColors.outline,
-                                size: 48,
+                                size: 40,
                               ),
                             ),
                           )
                         : const Icon(
                             Icons.person_rounded,
                             color: AppColors.outline,
-                            size: 48,
+                            size: 40,
                           ),
                   ),
                 ),
@@ -213,33 +217,51 @@ class _ReciterCard extends StatelessWidget {
                 ),
               ],
             ),
-            // Name + moshaf sit in a tight group so the avatar and play button
-            // anchor the top/bottom while any spare height goes to the gaps.
+            // Name + rewayat sit in a tight group so the avatar and play
+            // button anchor the top/bottom while any spare height goes to
+            // the gaps. Name wraps to 2 lines instead of truncating; the
+            // rewayat pill scales its text down to fit instead of clipping.
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   reciter.name,
                   textAlign: TextAlign.center,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.titleLg,
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  reciter.primaryMoshaf?.name ?? '',
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodyEnSm,
-                ),
+                if (moshafName.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: AppRadii.pillRadius,
+                      ),
+                      child: Text(
+                        moshafName,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        style: AppTypography.bodyEnSm.copyWith(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
             PressableScale(
               onTap: () => _play(reciter),
               child: NeuIconButton(
                 icon: Icons.play_arrow_rounded,
-                size: 52,
+                size: 48,
                 onPressed: () => _play(reciter),
               ),
             ),
@@ -271,17 +293,19 @@ class _ReciterCardSkeleton extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: AppColors.tealEmeraldGradient,
             ),
-            child: const SkeletonBox.circle(size: 88),
+            child: const SkeletonBox.circle(size: 76),
           ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SkeletonBox(width: 120, height: 18),
+              SkeletonBox(width: 110, height: 16),
+              const SizedBox(height: 4),
+              SkeletonBox(width: 90, height: 16),
               const SizedBox(height: AppSpacing.xs),
-              SkeletonBox(width: 80, height: 12),
+              SkeletonBox(width: 70, height: 14),
             ],
           ),
-          const SkeletonBox.circle(size: 52),
+          const SkeletonBox.circle(size: 48),
         ],
       ),
     );

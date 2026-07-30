@@ -24,7 +24,10 @@ class NotificationService {
   static const _prayerChannelId = 'prayer_times_adhan_v2';
   // Old channel ids to clean up. A channel's sound is immutable after creation,
   // so each sound change ships a NEW id and retires the previous one here.
-  static const _legacyPrayerChannelIds = ['prayer_times', 'prayer_times_adhan_v1'];
+  static const _legacyPrayerChannelIds = [
+    'prayer_times',
+    'prayer_times_adhan_v1',
+  ];
   static const _reflectionChannelId = 'daily_reflection';
   static const _reflectionId = 100;
 
@@ -44,10 +47,11 @@ class NotificationService {
   Future<void> init() async {
     if (_initialized) return;
     tz_data.initializeTimeZones();
-    final tzInfo = await FlutterTimezone.getLocalTimezone();
     try {
+      final tzInfo = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Failed to set local timezone: $e');
       tz.setLocalLocation(tz.UTC);
     }
 
@@ -77,8 +81,10 @@ class NotificationService {
   /// the alarm stream, so it plays at full length and is audible even when the
   /// app is closed. Deletes the legacy default-sound channel if it lingers.
   Future<void> _setupAndroidChannels() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (android == null) return; // iOS / other platforms
     for (final id in _legacyPrayerChannelIds) {
       await android.deleteNotificationChannel(channelId: id);
@@ -109,51 +115,62 @@ class NotificationService {
   }
 
   Future<bool> requestPermission() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    final ios = _plugin.resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     if (android != null) {
-      return await android.requestNotificationsPermission() ?? false;
+      final notif = await android.requestNotificationsPermission() ?? false;
+      await android.requestExactAlarmsPermission();
+      return notif;
     }
     if (ios != null) {
-      return await ios.requestPermissions(alert: true, sound: true) ?? false;
+      return await ios.requestPermissions(
+            alert: true,
+            sound: true,
+            badge: true,
+          ) ??
+          false;
     }
     return false;
   }
 
   NotificationDetails get _prayerDetails => NotificationDetails(
-        android: AndroidNotificationDetails(
-          _prayerChannelId,
-          'Prayer Times',
-          channelDescription: 'Adhan prayer time reminders',
-          importance: Importance.max,
-          priority: Priority.max,
-          // Play the bundled adhan from res/raw/adhan.mp3. The Android system
-          // plays this even when the app is fully closed — no background isolate
-          // needed. Channel sound is immutable after first creation; the channel
-          // id is versioned so a sound change takes effect on reinstall/clear.
-          sound: const RawResourceAndroidNotificationSound('adhan'),
-          playSound: true,
-          enableVibration: true,
-        ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentSound: true,
-          // iOS caps notification sounds at ~30s; full adhan plays in-app
-          // via AdhanAudioService when the notification is tapped.
-        ),
-      );
+    android: AndroidNotificationDetails(
+      _prayerChannelId,
+      'Prayer Times',
+      channelDescription: 'Adhan prayer time reminders',
+      importance: Importance.max,
+      priority: Priority.max,
+      // Play the bundled adhan from res/raw/adhan.mp3. The Android system
+      // plays this even when the app is fully closed — no background isolate
+      // needed. Channel sound is immutable after first creation; the channel
+      // id is versioned so a sound change takes effect on reinstall/clear.
+      sound: const RawResourceAndroidNotificationSound('adhan'),
+      playSound: true,
+      enableVibration: true,
+    ),
+    iOS: const DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: true,
+      // iOS caps notification sounds at ~30s; full adhan plays in-app
+      // via AdhanAudioService when the notification is tapped.
+    ),
+  );
 
   NotificationDetails get _reflectionDetails => NotificationDetails(
-        android: AndroidNotificationDetails(
-          _reflectionChannelId,
-          'Daily Reflection',
-          channelDescription: 'Daily Quran reflection reminder',
-          importance: Importance.defaultImportance,
-        ),
-        iOS: const DarwinNotificationDetails(presentAlert: true),
-      );
+    android: AndroidNotificationDetails(
+      _reflectionChannelId,
+      'Daily Reflection',
+      channelDescription: 'Daily Quran reflection reminder',
+      importance: Importance.defaultImportance,
+    ),
+    iOS: const DarwinNotificationDetails(presentAlert: true),
+  );
 
   /// Schedule prayer-time notifications for the next 7 days using [lat]/[lng].
   Future<void> schedulePrayerNotifications(double lat, double lng) async {
@@ -192,13 +209,22 @@ class NotificationService {
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
             payload: '$_adhanPayload:$name',
           );
-        } catch (e) {
-          // Defensive: if the Android channel sound is missing (fresh build
-          // before the raw resource was added), scheduling throws a
-          // PlatformException. Log it but don't crash — prayer times still
-          // show in the UI, and a full rebuild will fix the notification sound.
-          // The app binary must be rebuilt after adding res/raw/adhan.mp3.
-          debugPrint('Failed to schedule $name notification: $e');
+        } catch (_) {
+          // If exact alarm permission is denied by user/OS, fall back to inexact
+          // so the notification still triggers near prayer time.
+          try {
+            await _plugin.zonedSchedule(
+              id: id,
+              title: 'Time for $name',
+              body: "It's time for $name prayer",
+              scheduledDate: scheduled,
+              notificationDetails: _prayerDetails,
+              androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+              payload: '$_adhanPayload:$name',
+            );
+          } catch (e) {
+            debugPrint('Failed to schedule $name notification: $e');
+          }
         }
       }
     }
@@ -214,15 +240,14 @@ class NotificationService {
 
   /// Reconcile the scheduled prayer notifications with the current settings and
   /// location. Safe to call on every app open and location refresh — this is
-  /// what keeps a rolling 7-day window fresh (the old code only scheduled once,
-  /// when the settings toggle was flipped, so alerts silently stopped after a
-  /// week or when the user moved).
+  /// what keeps a rolling 7-day window fresh.
   Future<void> syncPrayerSchedule({
     required bool enabled,
     double? lat,
     double? lng,
   }) async {
     if (enabled && lat != null && lng != null) {
+      await requestPermission();
       await schedulePrayerNotifications(lat, lng);
     } else {
       await cancelPrayerNotifications();
@@ -237,15 +262,27 @@ class NotificationService {
     if (scheduled.isBefore(now)) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
-    await _plugin.zonedSchedule(
-      id: _reflectionId,
-      title: 'Daily Reflection',
-      body: 'Your daily ayah is ready — take a moment to reflect.',
-      scheduledDate: scheduled,
-      notificationDetails: _reflectionDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+    try {
+      await _plugin.zonedSchedule(
+        id: _reflectionId,
+        title: 'Daily Reflection',
+        body: 'Your daily ayah is ready — take a moment to reflect.',
+        scheduledDate: scheduled,
+        notificationDetails: _reflectionDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    } catch (_) {
+      await _plugin.zonedSchedule(
+        id: _reflectionId,
+        title: 'Daily Reflection',
+        body: 'Your daily ayah is ready — take a moment to reflect.',
+        scheduledDate: scheduled,
+        notificationDetails: _reflectionDetails,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    }
   }
 
   Future<void> cancelDailyReflection() => _plugin.cancel(id: _reflectionId);
@@ -262,13 +299,16 @@ class NotificationService {
   // Returns a short human-readable diagnostic (alarm volume + DND state) so a
   // silent adhan can be attributed to the device at a glance.
   // ---------------------------------------------------------------------------
-  static const _audioDiagChannel =
-      MethodChannel('com.nurehub.qariverse/audio_diag');
+  static const _audioDiagChannel = MethodChannel(
+    'com.nurehub.qariverse/audio_diag',
+  );
 
   Future<String> debugFireAdhanNow() async {
     await requestPermission();
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     // Unique id => guaranteed fresh channel that carries the adhan sound.
     final testChannelId = 'adhan_test_${DateTime.now().millisecondsSinceEpoch}';
@@ -323,8 +363,9 @@ class NotificationService {
   /// test to explain a silent adhan. Never throws.
   Future<String> _debugAudioDiagnostics() async {
     try {
-      final result = await _audioDiagChannel
-          .invokeMapMethod<String, dynamic>('getAudioDiagnostics');
+      final result = await _audioDiagChannel.invokeMapMethod<String, dynamic>(
+        'getAudioDiagnostics',
+      );
       if (result == null) return 'Diagnostics unavailable on this platform.';
       final vol = result['alarmVolume'];
       final max = result['alarmMax'];
@@ -334,11 +375,15 @@ class NotificationService {
         ..writeln('Alarm volume: $vol / $max${muted ? '  ⚠ MUTED' : ''}')
         ..write('Do Not Disturb: $dnd');
       if (muted) {
-        buffer.write('\n\nTurn UP the alarm volume — the adhan is silent '
-            'because the alarm stream is at 0.');
+        buffer.write(
+          '\n\nTurn UP the alarm volume — the adhan is silent '
+          'because the alarm stream is at 0.',
+        );
       } else if (dnd is String && dnd.contains('None')) {
-        buffer.write('\n\nDND is set to total silence — it is blocking the '
-            'adhan. Turn DND off or allow alarms.');
+        buffer.write(
+          '\n\nDND is set to total silence — it is blocking the '
+          'adhan. Turn DND off or allow alarms.',
+        );
       }
       return buffer.toString();
     } on PlatformException catch (e) {
@@ -347,5 +392,4 @@ class NotificationService {
       return 'Diagnostics unavailable.';
     }
   }
-
 }

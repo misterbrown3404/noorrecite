@@ -9,6 +9,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/duration_format.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../downloads/presentation/controllers/download_controller.dart';
+import '../../../reciters/presentation/controllers/reciter_controller.dart';
 import '../../domain/entities/audio_track.dart';
 import '../controllers/audio_controller.dart';
 
@@ -46,11 +47,6 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
     super.initState();
     _audio = Get.find<AudioController>();
     _downloads = Get.find<DownloadController>();
-    // Resume after the first frame: this page is materialized lazily during a
-    // build/layout pass, and resumeLastSession synchronously mutates reactive
-    // state (queue/error) via setQueue. Mutating an observable while the
-    // framework is still building would mark a live Obx dirty mid-build and
-    // throw. Deferring to the post-frame callback runs it once building is done.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_audio.queue.isEmpty) {
@@ -77,7 +73,6 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
     _waveformController.dispose();
     super.dispose();
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -86,21 +81,57 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
         title: const Text('Now Playing'),
         actions: [
           HeaderIconAction(
-            icon: Icons.queue_music_rounded,
-            onTap: () => _showQueueSheet(),
+            icon: Icons.mic_rounded,
+            onTap: () => _showReciterSheet(),
           ),
-          HeaderIconAction(
-            icon: Icons.download_outlined,
-            onTap: () {
-              final track = _audio.currentTrack;
-              if (track != null) _onDownloadTap(track);
-            },
-          ),
+          Obx(() {
+            final track = _audio.currentTrack;
+            if (track == null) {
+              return const SizedBox(width: 44); // keep header height stable
+            }
+
+            final downloading = _downloads.isDownloading(track.id);
+            if (downloading) {
+              final p = _downloads.progress[track.id] ?? 0.0;
+              return SizedBox(
+                width: 44,
+                height: 44,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: CircularProgressIndicator(
+                        value: p > 0
+                            ? p
+                            : null, // spins until first progress event
+                        strokeWidth: 2.5,
+                        color: AppColors.primary,
+                        backgroundColor: AppColors.surfaceContainerHigh,
+                      ),
+                    ),
+                    PressableScale(
+                      onTap: () => _onDownloadTap(track),
+                      child: const Icon(Icons.close_rounded, size: 16),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return HeaderIconAction(
+              icon: _downloads.isDownloaded(track.id)
+                  ? Icons.download_done_rounded
+                  : Icons.download_outlined,
+              onTap: () => _onDownloadTap(track),
+            );
+          }),
         ],
       ),
       body: GeometricBackground(
         child: SafeArea(
-          bottom: false,
+          bottom: true,
           child: Stack(
             children: [
               const ParticleField(particleCount: 20),
@@ -154,6 +185,18 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _QueueSheet(),
+    );
+  }
+
+  /// Reciter picker: lists every reciter, scrollable, and starts playback of
+  /// the current surah with whichever reciter is tapped.
+  void _showReciterSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) =>
+          _ReciterSheet(currentSurahNumber: _audio.currentTrack?.surahNumber),
     );
   }
 
@@ -239,6 +282,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                 if (track != null)
                   Positioned(
                     left: AppSpacing.lg,
+                    right: AppSpacing
+                        .lg, // bound the width so it can't overflow the card
                     bottom: AppSpacing.lg,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,23 +298,27 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: AppSpacing.xs),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: AppColors.goldGradient,
-                            borderRadius: AppRadii.pillRadius,
-                          ),
-                          child: Text(
-                            track.reciterName.toUpperCase(),
-                            style: AppTypography.labelCaps.copyWith(
-                              color: Colors.white,
-                              letterSpacing: 1.5,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                              vertical: 6,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            decoration: BoxDecoration(
+                              gradient: AppColors.goldGradient,
+                              borderRadius: AppRadii.pillRadius,
+                            ),
+                            child: Text(
+                              track.reciterName.toUpperCase(),
+                              style: AppTypography.labelCaps.copyWith(
+                                color: Colors.white,
+                                letterSpacing: 1.5,
+                              ),
+                              maxLines:
+                                  1, // FittedBox handles overflow now, no ellipsis needed
+                            ),
                           ),
                         ),
                       ],
@@ -414,8 +463,14 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(DurationFormat.clock(pos), style: AppTypography.labelSemibold),
-                Text(DurationFormat.clock(dur), style: AppTypography.labelSemibold),
+                Text(
+                  DurationFormat.clock(pos),
+                  style: AppTypography.labelSemibold,
+                ),
+                Text(
+                  DurationFormat.clock(dur),
+                  style: AppTypography.labelSemibold,
+                ),
               ],
             ),
           ),
@@ -562,78 +617,201 @@ class _QueueSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final audio = Get.find<AudioController>();
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.6,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Text('QUEUE', style: AppTypography.labelSemibold),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.close_rounded),
-                ),
-              ],
+    return Material(
+      color: AppColors.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Text('QUEUE', style: AppTypography.labelSemibold),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: Obx(() {
-              final queue = audio.queue;
-              if (queue.isEmpty) {
-                return const Center(child: Text('No surahs in queue'));
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                itemCount: queue.length,
-                itemBuilder: (context, index) {
-                  final track = queue[index];
-                  final isCurrent = index == audio.currentIndex.value;
-                  return ListTile(
-                    leading: Icon(
-                      isCurrent
-                          ? Icons.play_arrow_rounded
-                          : Icons.circle_outlined,
-                      color: isCurrent
-                          ? AppColors.primary
-                          : AppColors.onSurfaceVariant,
-                      size: isCurrent ? 24 : 16,
+            const Divider(height: 1),
+            Expanded(
+              child: Obx(() {
+                final queue = audio.queue;
+                if (queue.isEmpty) {
+                  return const Center(child: Text('No surahs in queue'));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  itemCount: queue.length,
+                  itemBuilder: (context, index) {
+                    final track = queue[index];
+                    final isCurrent = index == audio.currentIndex.value;
+                    return ListTile(
+                      leading: Icon(
+                        isCurrent
+                            ? Icons.play_arrow_rounded
+                            : Icons.circle_outlined,
+                        color: isCurrent
+                            ? AppColors.primary
+                            : AppColors.onSurfaceVariant,
+                        size: isCurrent ? 24 : 16,
+                      ),
+                      title: Text(
+                        quran.getSurahName(track.surahNumber),
+                        style: isCurrent
+                            ? AppTypography.labelSemibold.copyWith(
+                                color: AppColors.primary,
+                              )
+                            : AppTypography.labelSemibold,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        'Surah ${track.surahName} • ${track.reciterName}',
+                        style: AppTypography.bodyEnSm.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () {
+                        audio.playAt(index);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Reciter picker sheet: lists every reciter (scrollable), tapping one starts
+/// playback of the current surah with that reciter.
+class _ReciterSheet extends StatelessWidget {
+  const _ReciterSheet({required this.currentSurahNumber});
+
+  /// The surah currently loaded in the player, so switching reciters keeps
+  /// listening to the same surah rather than restarting from Surah 1.
+  final int? currentSurahNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    final reciterController = Get.find<ReciterController>();
+    final audio = Get.find<AudioController>();
+
+    return Material(
+      color: AppColors.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.75,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Text('RECITERS', style: AppTypography.labelSemibold),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: Obx(() {
+                if (reciterController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (reciterController.error.value.isNotEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: ErrorStateView(
+                        message: reciterController.error.value,
+                        onRetry: reciterController.fetchReciters,
+                      ),
                     ),
-                    title: Text(
-                      quran.getSurahName(track.surahNumber),
-                      style: isCurrent
-                          ? AppTypography.labelSemibold.copyWith(
+                  );
+                }
+                final reciters = reciterController.filteredReciters;
+                if (reciters.isEmpty) {
+                  return const Center(child: Text('No reciters available'));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  itemCount: reciters.length,
+                  itemBuilder: (context, index) {
+                    final reciter = reciters[index];
+                    final isCurrent =
+                        audio.currentTrack?.reciterName == reciter.name;
+                    final imageAsset = AppAssets.reciterImage(reciter.id);
+
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: AppColors.surfaceContainerHigh,
+                        backgroundImage: imageAsset != null
+                            ? AssetImage(imageAsset)
+                            : null,
+                        child: imageAsset == null
+                            ? const Icon(
+                                Icons.person_rounded,
+                                color: AppColors.outline,
+                              )
+                            : null,
+                      ),
+                      title: Text(
+                        reciter.name,
+                        style: isCurrent
+                            ? AppTypography.labelSemibold.copyWith(
+                                color: AppColors.primary,
+                              )
+                            : AppTypography.labelSemibold,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        reciter.primaryMoshaf?.name ?? '',
+                        style: AppTypography.bodyEnSm.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: isCurrent
+                          ? const Icon(
+                              Icons.play_arrow_rounded,
                               color: AppColors.primary,
                             )
-                          : AppTypography.labelSemibold,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      'Surah ${track.surahName} • ${track.reciterName}',
-                      style: AppTypography.bodyEnSm.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () {
-                      audio.playAt(index);
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              );
-            }),
-          ),
-        ],
+                          : null,
+                      onTap: () {
+                        audio.playReciter(
+                          reciter,
+                          startSurahNumber: currentSurahNumber ?? 1,
+                        );
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
