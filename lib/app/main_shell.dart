@@ -1,3 +1,4 @@
+import '../../features/audio_player/presentation/pages/mini_player.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/widgets/widgets.dart';
@@ -33,16 +34,25 @@ class MainShell extends StatelessWidget {
               // Lazily materialize a tab only after its first visit; keep it in
               // the tree afterward so IndexedStack preserves its state/scroll.
               controller.visited.contains(i)
-                  ? _tabs[i]()
+                  ? TickerMode(
+                      enabled: i == controller.currentIndex.value,
+                      child: _tabs[i](),
+                    )
                   : const SizedBox.shrink(),
           ],
         ),
       ),
       bottomNavigationBar: Obx(
-        () => FloatingNavDock(
-          items: FloatingNavDock.mainTabs,
-          currentIndex: controller.currentIndex.value,
-          onTap: controller.select,
+        () => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (controller.currentIndex.value != 2) const MiniPlayer(),
+            FloatingNavDock(
+              items: FloatingNavDock.mainTabs,
+              currentIndex: controller.currentIndex.value,
+              onTap: controller.select,
+            ),
+          ],
         ),
       ),
     );

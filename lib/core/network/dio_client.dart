@@ -20,10 +20,7 @@ class DioClient {
         receiveTimeout: const Duration(seconds: 20),
         sendTimeout: const Duration(seconds: 12),
         // gzip shrinks the reciters/suwar payloads substantially on the wire.
-        headers: {
-          'Accept': 'application/json',
-          'Accept-Encoding': 'gzip',
-        },
+        headers: {'Accept': 'application/json', 'Accept-Encoding': 'gzip'},
         // Reuse decoded JSON maps without a second parse pass.
         responseType: ResponseType.json,
       ),

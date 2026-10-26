@@ -1,247 +1,265 @@
+import '../../../../core/services/permission_requests.dart';
 import 'dart:async';
-
-import 'package:adhan/adhan.dart' as adhan;
+import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:geocoding/geocoding.dart';
 import '../../../../core/services/adhan_audio_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/prayer_schedule.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
 import '../../../settings/presentation/controllers/settings_controller.dart';
+export '../../../../core/services/prayer_schedule.dart' show PrayerTimeInfo;
 
-class PrayerTimesController extends GetxController {
-  PrayerTimesController(this._storage);
+/// Injectable platform boundary for location failure/permission tests.
+class PrayerLocationSource {
+  Future<bool> enabled() => Geolocator.isLocationServiceEnabled();
+  Future<LocationPermission> permission() => Geolocator.checkPermission();
+  Future<LocationPermission> request() =>
+      PermissionRequests.run(Geolocator.requestPermission);
+  Future<Position?> lastKnown() => Geolocator.getLastKnownPosition();
+  Future<Position> current() => Geolocator.getCurrentPosition(
+    locationSettings: const LocationSettings(
+      accuracy: LocationAccuracy.medium,
+      timeLimit: Duration(seconds: 30),
+    ),
+  );
+  Future<String?> place(double lat, double lng) async {
+    final places = await placemarkFromCoordinates(
+      lat,
+      lng,
+    ).timeout(const Duration(seconds: 5));
+    if (places.isEmpty) return null;
+    final p = places.first;
+    final parts = [
+      p.locality,
+      p.administrativeArea,
+    ].whereType<String>().where((s) => s.isNotEmpty).toSet();
+    return parts.isEmpty ? null : parts.join(', ');
+  }
+}
 
+class PrayerTimesController extends GetxController with WidgetsBindingObserver {
+  PrayerTimesController(
+    this._storage, {
+    PrayerLocationSource? location,
+    this.syncReminders,
+  }) : _location = location ?? PrayerLocationSource();
   final LocalStorageService _storage;
-
+  final PrayerLocationSource _location;
+  final Future<void> Function(double, double)? syncReminders;
   final allPrayerTimes = <PrayerTimeInfo>[].obs;
   final nextPrayer = Rxn<PrayerTimeInfo>();
-  /// Live countdown to [nextPrayer], updated once per second. Kept separate
-  /// from [nextPrayer] so the per-second tick repaints only the small countdown
-  /// label (a leaf `Obx`) instead of rebuilding the entire prayer card.
+  final currentPrayer = Rxn<PrayerTimeInfo>();
+  final afterSunrise = false.obs;
+  final hijriDate = ''.obs;
+  DateTime? _refreshAt;
   final remaining = Duration.zero.obs;
   final isLoading = true.obs;
+  final isRefreshing = false.obs;
   final error = ''.obs;
-
+  final locationLabel = 'Your prayer location'.obs;
+  final locationMessage = 'Finding your location…'.obs;
+  final locationAction = ''.obs;
   Timer? _timer;
+  Future<void>? _refresh;
+  DateTime? _calculatedDate;
+  bool _foreground = true;
 
   @override
   void onInit() {
     super.onInit();
-    _loadFromCacheThenRefresh();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(loadPrayerTimes());
   }
 
-  /// 1. If we have cached coords, compute prayer times instantly (offline-safe).
-  /// 2. Then request a fresh GPS fix in the background and recompute silently.
-  Future<void> _loadFromCacheThenRefresh() async {
-    final cachedLat = _storage.read<double>(StorageKeys.lastLat);
-    final cachedLng = _storage.read<double>(StorageKeys.lastLng);
-
-    if (cachedLat != null && cachedLng != null) {
-      _compute(cachedLat, cachedLng);
-      _syncNotifications(cachedLat, cachedLng);
-      isLoading(false);
-      _startTimer();
-      // Refresh coords silently — don't block UI.
-      _refreshLocation();
-    } else {
-      // First launch: must wait for GPS.
-      await _refreshLocation(showLoading: true);
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) {
+      _recomputeFromCache();
+      unawaited(_load(requestPermission: false));
     }
   }
 
-  Future<void> _refreshLocation({bool showLoading = false}) async {
-    if (showLoading) isLoading(true);
+  bool _recomputeFromCache() {
+    final lat = _storage.read<double>(StorageKeys.lastLat);
+    final lng = _storage.read<double>(StorageKeys.lastLng);
+    if (lat == null || lng == null) return false;
+    _compute(lat, lng);
+    if (locationLabel.value == 'Your prayer location') {
+      locationLabel('${lat.toStringAsFixed(2)}, ${lng.toStringAsFixed(2)}');
+    }
+    return true;
+  }
+
+  Future<void> loadPrayerTimes() => _load(requestPermission: true);
+  Future<void> _load({required bool requestPermission}) {
+    return _refresh ??= _refreshLocation(
+      requestPermission: requestPermission,
+    ).whenComplete(() => _refresh = null);
+  }
+
+  Future<void> _refreshLocation({required bool requestPermission}) async {
+    final cached = _recomputeFromCache();
+    isLoading(!cached);
+    isRefreshing(true);
     error('');
-
+    locationAction('');
+    locationMessage(
+      cached ? 'Using saved location · updating…' : 'Finding your location…',
+    );
+    if (cached) _startTimer();
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        _fail(showLoading,
-            'Location services are off. Turn them on for prayer times.');
-        return;
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _fail(showLoading, 'Location permission required for prayer times');
-        return;
-      }
-
-      // 1) Instant: use the OS's last known fix if there is one. This alone
-      //    resolves the common "TimeoutException" on cold GPS / emulators,
-      //    since a fresh fix can take far longer than any reasonable timeout.
-      Position? pos = await Geolocator.getLastKnownPosition();
-
-      // 2) Try for a fresh fix, but treat a timeout as non-fatal: if step 1
-      //    gave us something we keep it; the next refresh will try again.
-      try {
-        pos = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-            timeLimit: Duration(seconds: 30),
-          ),
+      if (!await _location.enabled()) {
+        locationAction('location');
+        throw StateError(
+          'Location services are off. Turn them on to update your prayer times.',
         );
-      } on TimeoutException {
-        // Keep last-known (if any).
       }
-
-      if (pos == null) {
-        _fail(showLoading,
-            "Couldn't get your location. Check GPS and try again.");
-        return;
+      var permission = await _location.permission();
+      if (permission == LocationPermission.denied && requestPermission) {
+        permission = await _location.request();
       }
-
-      // Persist for next cold start.
+      if (permission == LocationPermission.deniedForever) {
+        locationAction('app');
+        throw StateError(
+          'Location access is blocked. Enable it in app settings.',
+        );
+      }
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        throw StateError(
+          'Location permission is needed to calculate your local prayer times.',
+        );
+      }
+      Position? position;
+      try {
+        position = await _location.lastKnown();
+      } catch (_) {
+        /* A fresh fix can still succeed. */
+      }
+      var fresh = true;
+      try {
+        position = await _location.current();
+      } catch (_) {
+        fresh = false;
+      }
+      if (position == null) {
+        throw StateError(
+          'Couldn’t get your location. Check GPS and try again.',
+        );
+      }
       await Future.wait([
-        _storage.write(StorageKeys.lastLat, pos.latitude),
-        _storage.write(StorageKeys.lastLng, pos.longitude),
+        _storage.write(StorageKeys.lastLat, position.latitude),
+        _storage.write(StorageKeys.lastLng, position.longitude),
       ]);
-
-      _compute(pos.latitude, pos.longitude);
-      _syncNotifications(pos.latitude, pos.longitude);
-      if (_timer == null || !_timer!.isActive) _startTimer();
-    } catch (_) {
-      _fail(showLoading, 'Failed to get location. Please try again.');
+      if (isClosed) return;
+      _compute(position.latitude, position.longitude);
+      _startTimer();
+      locationLabel(
+        '${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)}',
+      );
+      locationMessage(
+        fresh
+            ? 'Updated from your device location'
+            : 'Using the device’s last known location',
+      );
+      await _sync(position.latitude, position.longitude);
+      try {
+        final place = await _location.place(
+          position.latitude,
+          position.longitude,
+        );
+        if (!isClosed && place != null) locationLabel(place);
+      } catch (_) {
+        /* Coordinates remain available offline. */
+      }
+    } catch (e) {
+      if (isClosed) return;
+      final message = e is StateError
+          ? e.message.toString()
+          : 'Couldn’t update location. Please try again.';
+      locationMessage(cached ? '$message Using saved location.' : message);
+      if (!cached) error(message);
+      if (cached) {
+        await _sync(
+          _storage.read<double>(StorageKeys.lastLat)!,
+          _storage.read<double>(StorageKeys.lastLng)!,
+        );
+      }
     } finally {
-      if (showLoading) isLoading(false);
+      if (!isClosed) {
+        isLoading(false);
+        isRefreshing(false);
+      }
     }
   }
-
-  /// Surface a location error only on the blocking first-launch path; when we
-  /// already have cached prayer times, refresh failures stay silent.
-  void _fail(bool showLoading, String message) {
-    if (showLoading) error(message);
-  }
-
 
   void _compute(double lat, double lng) {
-    final coords = adhan.Coordinates(lat, lng);
-    final params = adhan.CalculationMethod.muslim_world_league.getParameters()
-      ..madhab = adhan.Madhab.shafi;
-    final pt = adhan.PrayerTimes.today(coords, params);
-
     final now = DateTime.now();
-    final prayers = [
-      PrayerTimeInfo(name: 'Fajr',    time: pt.fajr,    isNext: false, timeRemaining: pt.fajr.difference(now)),
-      PrayerTimeInfo(name: 'Sunrise', time: pt.sunrise,  isNext: false, timeRemaining: pt.sunrise.difference(now)),
-      PrayerTimeInfo(name: 'Dhuhr',   time: pt.dhuhr,   isNext: false, timeRemaining: pt.dhuhr.difference(now)),
-      PrayerTimeInfo(name: 'Asr',     time: pt.asr,     isNext: false, timeRemaining: pt.asr.difference(now)),
-      PrayerTimeInfo(name: 'Maghrib', time: pt.maghrib, isNext: false, timeRemaining: pt.maghrib.difference(now)),
-      PrayerTimeInfo(name: 'Isha',    time: pt.isha,    isNext: false, timeRemaining: pt.isha.difference(now)),
-    ]..sort((a, b) => a.time.compareTo(b.time));
-
-    PrayerTimeInfo? next;
-    for (final p in prayers) {
-      if (p.time.isAfter(now)) { next = p.copyWith(isNext: true); break; }
-    }
-    // Past all prayers today — next is tomorrow's Fajr.
-    next ??= PrayerTimeInfo(
-      name: 'Fajr',
-      time: adhan.PrayerTimes.today(coords, params).fajr.add(const Duration(days: 1)),
-      isNext: true,
-      timeRemaining: adhan.PrayerTimes.today(coords, params).fajr.add(const Duration(days: 1)).difference(now),
-    );
-
-    final updated = prayers.map((p) => p.time == next!.time ? next : p).toList();
-    allPrayerTimes.assignAll(updated);
-    nextPrayer.value = next;
-    remaining.value = next.time.difference(now);
+    final schedule = PrayerSchedule.at(lat, lng, now);
+    allPrayerTimes.assignAll(schedule.today);
+    nextPrayer.value = schedule.next;
+    currentPrayer.value = schedule.current;
+    afterSunrise.value = schedule.afterSunrise;
+    hijriDate.value = schedule.hijriDate;
+    _refreshAt = schedule.refreshAt;
+    remaining.value = schedule.next.time.difference(now);
+    _calculatedDate = DateTime(now.year, now.month, now.day);
   }
 
   void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      final np = nextPrayer.value;
-      if (np == null) return;
-      final rem = np.time.difference(DateTime.now());
-      if (rem.isNegative) {
-        final crossed = np.name;
-        final lat = _storage.read<double>(StorageKeys.lastLat);
-        final lng = _storage.read<double>(StorageKeys.lastLng);
-        if (lat != null && lng != null) _compute(lat, lng);
-        _onPrayerReached(crossed);
+    _timer ??= Timer.periodic(const Duration(seconds: 1), (_) {
+      final now = DateTime.now();
+      final previous = nextPrayer.value;
+      if (previous == null) return;
+      final due = !previous.time.isAfter(now);
+      if (due ||
+          (_refreshAt != null && !now.isBefore(_refreshAt!)) ||
+          _calculatedDate != DateTime(now.year, now.month, now.day)) {
+        _recomputeFromCache();
+        if (due &&
+            _foreground &&
+            defaultTargetPlatform != TargetPlatform.android &&
+            _notificationsEnabled &&
+            PrayerSchedule.shouldAnnounce(previous, now)) {
+          unawaited(AdhanAudioService.instance.play());
+        }
       } else {
-        // Only the countdown ticks — the card shell (bound to nextPrayer) stays
-        // put, so this repaints just the leaf countdown label.
-        remaining.value = rem;
+        remaining.value = previous.time.difference(now);
       }
     });
   }
 
-  /// Called the instant a prayer time is crossed while the app is in the
-  /// foreground. Plays the full adhan — but only for the five daily prayers
-  /// (Sunrise is a marker, not a prayer) and only when the user has prayer
-  /// notifications enabled.
-  void _onPrayerReached(String crossedName) {
-    if (crossedName == 'Sunrise') return;
-    if (!_notificationsEnabled) return;
-    AdhanAudioService.instance.play();
-  }
-
-  /// (Re)schedule the rolling 7-day prayer notifications for [lat]/[lng],
-  /// honouring the user's notification preference. Called on startup and after
-  /// every fresh location fix so alerts never go stale.
-  void _syncNotifications(double lat, double lng) {
-    NotificationService.instance.syncPrayerSchedule(
-      enabled: _notificationsEnabled,
-      lat: lat,
-      lng: lng,
-    );
-  }
-
-  bool get _notificationsEnabled {
-    // Prefer the live controller when it's registered; otherwise fall back to
-    // the persisted settings blob. Reading storage directly avoids a startup
-    // race: _syncNotifications runs during onInit and SettingsController may
-    // not be registered yet, in which case the old code returned false and
-    // silently cancelled every prayer notification. Default matches
-    // SettingsController's own default of true.
-    if (Get.isRegistered<SettingsController>()) {
-      return Get.find<SettingsController>().notificationsEnabled.value;
+  Future<void> _sync(double lat, double lng) async {
+    try {
+      if (syncReminders != null) {
+        await syncReminders!(lat, lng);
+        return;
+      }
+      await NotificationService.instance.syncPrayerSchedule(
+        enabled: _notificationsEnabled,
+        lat: lat,
+        lng: lng,
+      );
+    } catch (_) {
+      /* NotificationService exposes its error in reminder status. */
     }
-    final saved = _storage.readJson(StorageKeys.settings);
-    return (saved?['notificationsEnabled'] as bool?) ?? true;
   }
 
-  Future<void> loadPrayerTimes() => _loadFromCacheThenRefresh();
+  bool get _notificationsEnabled => Get.isRegistered<SettingsController>()
+      ? Get.find<SettingsController>().notificationsEnabled.value
+      : (_storage.readJson(StorageKeys.settings)?['notificationsEnabled']
+                as bool?) ??
+            true;
 
   @override
   void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.onClose();
   }
-}
-
-class PrayerTimeInfo {
-  PrayerTimeInfo({
-    required this.name,
-    required this.time,
-    required this.isNext,
-    required this.timeRemaining,
-  });
-
-  final String name;
-  final DateTime time;
-  final bool isNext;
-  final Duration timeRemaining;
-
-  String get formattedTime {
-    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
-  }
-
-  PrayerTimeInfo copyWith({String? name, DateTime? time, bool? isNext, Duration? timeRemaining}) =>
-      PrayerTimeInfo(
-        name: name ?? this.name,
-        time: time ?? this.time,
-        isNext: isNext ?? this.isNext,
-        timeRemaining: timeRemaining ?? this.timeRemaining,
-      );
 }

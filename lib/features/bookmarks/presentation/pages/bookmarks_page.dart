@@ -1,459 +1,339 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../app/main_shell_controller.dart';
 import '../../../../app/routes/app_routes.dart';
-import '../../../../core/constants/app_assets.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/widgets.dart';
+import '../../../playlists/presentation/playlists_sheet.dart';
 import '../../../quran_reader/presentation/controllers/surah_controller.dart';
-import '../../domain/entities/bookmark.dart';
 import '../controllers/bookmarks_controller.dart';
 
-/// Bookmarks / Saved tab (mockup: bookmarks_screen): a "Continue Reading" hero
-/// followed by the saved-ayah list rendered with verse badges and notes.
 class BookmarksPage extends StatelessWidget {
   const BookmarksPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final bookmarks = Get.find<BookmarksController>();
+    final quran = Get.find<SurahController>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BookMark'),
-        actions: [
-          HeaderIconAction(
-            icon: Icons.settings_rounded,
-            onTap: () => Get.toNamed(AppRoutes.settings),
-          ),
-        ],
+        title: const Text(
+          'Saved',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+        ),
+        centerTitle: false,
+        toolbarHeight: 80,
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        shape: const RoundedRectangleBorder(),
       ),
-      body: GeometricBackground(
-        child: SafeArea(
-          bottom: false,
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 120),
-            children: [
-              const Padding(
-                padding: AppSpacing.screenPadding,
-                child: _ContinueReadingCard(),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Padding(
-                padding: AppSpacing.screenPadding,
-                child: Obx(() {
-                  final count = Get.find<BookmarksController>().count;
-                  return SectionHeader(
-                    title: 'My Bookmarks',
-                    subtitle: '$count Saved ${count == 1 ? 'Ayah' : 'Ayahs'}',
-                    trailing: Row(
-                      children: const [
-                        Icon(
-                          Icons.filter_list_rounded,
-                          color: AppColors.onSurfaceVariant,
+      body: Obx(
+        () => CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Material(
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(28),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () => Get.find<MainShellController>().select(1),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Continue reading',
+                                      style: TextStyle(
+                                        color: colors.onPrimaryContainer,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      quran.lastRead.value?.surahName ??
+                                          'Your next quiet moment',
+                                      style: TextStyle(
+                                        color: colors.onPrimaryContainer,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      quran.lastRead.value == null
+                                          ? 'Open the Quran'
+                                          : 'Verse ${quran.lastRead.value!.ayah}',
+                                      style: TextStyle(
+                                        color: colors.onPrimaryContainer,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Icon(
+                                LucideIcons.bookOpen,
+                                size: 38,
+                                color: colors.onPrimaryContainer,
+                              ),
+                            ],
+                          ),
                         ),
-                        SizedBox(width: AppSpacing.md),
-                        Icon(
-                          Icons.sort_rounded,
-                          color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _CollectionLink(
+                            label: 'Playlists',
+                            icon: LucideIcons.listMusic,
+                            onTap: () => showModalBottomSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              showDragHandle: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(32),
+                                ),
+                              ),
+                              builder: (_) => const PlaylistsSheet(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _CollectionLink(
+                            label: 'Offline',
+                            icon: LucideIcons.circleCheck,
+                            onTap: () => Get.toNamed(AppRoutes.downloadCenter),
+                          ),
                         ),
                       ],
                     ),
-                  );
-                }),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              const _BookmarksList(),
-              const SizedBox(height: AppSpacing.xl),
-              // Previous Reflections Preview
-              // Padding(
-              //   padding: AppSpacing.screenPadding,
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       Row(
-              //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //         children: [
-              //           Text(
-              //             'Previous Reflections',
-              //             style: AppTypography.bodyAr,
-              //           ),
-              //           TextButton(
-              //             onPressed: () {},
-              //             child: Text(
-              //               'View All',
-              //               style: AppTypography.labelSemibold.copyWith(
-              //                 color: AppColors.primary,
-              //               ),
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //       const SizedBox(height: AppSpacing.md),
-              //       Row(
-              //         children: [
-              //           Expanded(
-              //             child: _PreviousReflectionCard(
-              //               date: 'Yesterday',
-              //               ayah: 'Al-Baqarah 2:255',
-              //               preview:
-              //                   'This verse provides immense spiritual protection...',
-              //               hasNote: true,
-              //             ),
-              //           ),
-              //           const SizedBox(width: AppSpacing.md),
-              //           Expanded(
-              //             child: _PreviousReflectionCard(
-              //               date: '2 days ago',
-              //               ayah: 'Ash-Sharh 94:6',
-              //               preview:
-              //                   'A reminder that every struggle has a purpose...',
-              //               hasNote: true,
-              //             ),
-              //           ),
-              //         ],
-              //       ),
-              //       const SizedBox(height: AppSpacing.md),
-              //       _AddReflectionCard(),
-              //     ],
-              //   ),
-              // ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueReadingCard extends StatelessWidget {
-  const _ContinueReadingCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final surahController = Get.find<SurahController>();
-    return GlassCard(
-      child: Column(
-        children: [
-          // Hero image with Quran text overlay - matches Stitch design
-          Container(
-            height: 180,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: AppRadii.cardRadius,
-              boxShadow: AppShadows.card,
-              image: const DecorationImage(
-                image: AssetImage(AppAssets.quranOnCushion),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Color(0x66004D33),
-                  BlendMode.darken,
-                ),
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              'القرآن',
-              style: AppTypography.displayAr.copyWith(
-                color: Colors.white,
-                fontSize: 40,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // Last Read badge
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: AppRadii.pillRadius,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.history_rounded,
-                  color: AppColors.primary,
-                  size: 16,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  'Last Read',
-                  style: AppTypography.labelCaps.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Obx(() {
-            final lr = surahController.lastRead.value;
-            return Column(
-              children: [
-                Text(
-                  lr == null ? 'No surah opened yet' : 'Surah ${lr.surahId}',
-                  style: AppTypography.headlineLgMobile.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-                Text(
-                  lr == null
-                      ? 'Open a surah from the Quran tab'
-                      : 'Ayah ${lr.ayah} • Pages ${lr.pageStart}–${lr.pageEnd}',
-                  style: AppTypography.bodyEnSm,
-                ),
-              ],
-            );
-          }),
-          const SizedBox(height: AppSpacing.md),
-          GlowPrimaryButton(
-            label: 'Continue Reading',
-            trailingIcon: Icons.arrow_forward_rounded,
-            height: 48,
-            onPressed: () => Get.find<MainShellController>().select(1),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// class _PreviousReflectionCard extends StatelessWidget {
-//   const _PreviousReflectionCard({
-//     required this.date,
-//     required this.ayah,
-//     required this.preview,
-//     required this.hasNote,
-//   });
-//   final String date;
-//   final String ayah;
-//   final String preview;
-//   final bool hasNote;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return GlassCard(
-//       padding: const EdgeInsets.all(AppSpacing.md),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: [
-//               Text(
-//                 date,
-//                 style: AppTypography.labelCaps.copyWith(
-//                   color: AppColors.primary,
-//                 ),
-//               ),
-//               if (hasNote)
-//                 const Icon(
-//                   Icons.auto_awesome_rounded,
-//                   color: AppColors.tertiary,
-//                   size: 18,
-//                 ),
-//             ],
-//           ),
-//           const SizedBox(height: AppSpacing.xs),
-//           Text(ayah, style: AppTypography.labelSemibold.copyWith(fontSize: 13)),
-//           const SizedBox(height: AppSpacing.xs),
-//           Text(
-//             preview,
-//             style: AppTypography.bodyEnSm.copyWith(
-//               color: AppColors.onSurfaceVariant,
-//             ),
-//             maxLines: 2,
-//             overflow: TextOverflow.ellipsis,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// class _AddReflectionCard extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return PressableScale(
-//       onTap: () {},
-//       child: GlassCard(
-//         padding: const EdgeInsets.all(AppSpacing.md),
-//         child: Row(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             const Icon(
-//               Icons.add_circle_outline_rounded,
-//               color: AppColors.primary,
-//               size: 22,
-//             ),
-//             const SizedBox(width: AppSpacing.sm),
-//             Text(
-//               'Add Reflection',
-//               style: AppTypography.labelSemibold.copyWith(
-//                 color: AppColors.primary,
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-class _BookmarksList extends StatelessWidget {
-  const _BookmarksList();
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<BookmarksController>();
-    return Obx(() {
-      if (controller.bookmarks.isEmpty) return _EmptyBookmarksState();
-      return Padding(
-        padding: AppSpacing.screenPadding,
-        child: Column(
-          children: [
-            for (final b in controller.bookmarks)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: _BookmarkCard(bookmark: b),
-              ),
-          ],
-        ),
-      );
-    });
-  }
-}
-
-class _BookmarkCard extends StatelessWidget {
-  const _BookmarkCard({required this.bookmark});
-  final Bookmark bookmark;
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<BookmarksController>();
-    return GlassCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SurahOrnamentNumber(number: bookmark.surahId),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  bookmark.reference.isNotEmpty
-                      ? bookmark.reference
-                      : '${bookmark.surahName} • Ayah ${bookmark.ayah}',
-                  style: AppTypography.labelSemibold,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (bookmark.arabic.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    bookmark.arabic,
-                    textDirection: TextDirection.rtl,
-                    style: AppTypography.bodyAr.copyWith(fontSize: 16),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                if (bookmark.translation.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    bookmark.translation,
-                    style: AppTypography.bodyEnSm.copyWith(
-                      color: AppColors.onSurfaceVariant,
+                    const SizedBox(height: 28),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Bookmarks',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Chip(
+                          label: Text('${bookmarks.count}'),
+                          side: BorderSide.none,
+                          backgroundColor: colors.surfaceContainerLow,
+                        ),
+                      ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
+                  ],
+                ),
+              ),
             ),
-          ),
-          Column(
-            children: [
-              PressableScale(
-                onTap: () => controller.toggleFavorite(bookmark.id),
-                child: Icon(
-                  bookmark.isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  color: bookmark.isFavorite
-                      ? AppColors.primary
-                      : AppColors.onSurfaceVariant,
-                  size: 20,
+            if (bookmarks.bookmarks.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    children: [
+                      Icon(
+                        LucideIcons.library,
+                        size: 54,
+                        color: colors.primary,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Keep a verse close',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Bookmark an ayah while reading to find it here.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: colors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 20),
+                      FilledButton(
+                        onPressed: () =>
+                            Get.find<MainShellController>().select(1),
+                        child: const Text('Explore Quran'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverList.builder(
+                  itemCount: bookmarks.bookmarks.length,
+                  itemBuilder: (context, index) {
+                    final bookmark = bookmarks.bookmarks[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: colors.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: colors.outlineVariant.withValues(alpha: .3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                LucideIcons.bookmark,
+                                color: colors.primary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  bookmark.reference.isNotEmpty
+                                      ? bookmark.reference
+                                      : '${bookmark.surahName} · ${bookmark.ayah}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: bookmark.isFavorite
+                                    ? 'Remove favorite'
+                                    : 'Favorite',
+                                onPressed: () =>
+                                    bookmarks.toggleFavorite(bookmark.id),
+                                icon: Icon(
+                                  bookmark.isFavorite
+                                      ? LucideIcons.heart
+                                      : LucideIcons.heart,
+                                  color: colors.primary,
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Remove bookmark',
+                                icon: const Icon(LucideIcons.trash2, size: 20),
+                                onPressed: () async {
+                                  final remove = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Remove bookmark?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text('Keep'),
+                                        ),
+                                        FilledButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text('Remove'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (remove == true) {
+                                    bookmarks.remove(bookmark.id);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                          if (bookmark.arabic.isNotEmpty) ...[
+                            const SizedBox(height: 14),
+                            Text(
+                              bookmark.arabic,
+                              textDirection: TextDirection.rtl,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontFamily: 'Amiri',
+                                fontSize: 24,
+                                height: 1.8,
+                              ),
+                            ),
+                          ],
+                          if (bookmark.translation.isNotEmpty) ...[
+                            const SizedBox(height: 14),
+                            Text(
+                              bookmark.translation,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colors.onSurfaceVariant,
+                                height: 1.6,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              PressableScale(
-                onTap: () => controller.remove(bookmark.id),
-                child: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: AppColors.onSurfaceVariant,
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-        ],
+            const SliverToBoxAdapter(child: SizedBox(height: 210)),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _EmptyBookmarksState extends StatelessWidget {
+class _CollectionLink extends StatelessWidget {
+  const _CollectionLink({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.surfaceContainerLowest,
-                boxShadow: AppShadows.card,
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.bookmark_border_rounded,
-                  color: AppColors.primary.withValues(alpha: 0.4),
-                  size: 48,
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(22),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: colors.primary, size: 28),
+              const SizedBox(height: 16),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              'No Bookmarks Yet',
-              style: AppTypography.headlineLgMobile.copyWith(
-                color: AppColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Start saving your favorite Ayahs to build your personal spiritual treasury.',
-              textAlign: TextAlign.center,
-              style: AppTypography.bodyEnSm.copyWith(
-                color: AppColors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            GhostGlassButton(
-              label: 'Explore Quran',
-              borderColor: AppColors.primary,
-              onPressed: () => Get.find<MainShellController>().select(1),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

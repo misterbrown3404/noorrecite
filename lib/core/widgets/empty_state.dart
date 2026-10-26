@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -11,7 +12,7 @@ class EmptyState extends StatelessWidget {
     super.key,
     required this.title,
     this.message,
-    this.icon = Icons.inbox_outlined,
+    this.icon = LucideIcons.inbox,
     this.illustration,
     this.actionLabel,
     this.onAction,
@@ -41,14 +42,14 @@ class EmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: AppTypography.titleLg,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             if (message != null) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: AppTypography.bodyEnSm,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
             if (actionLabel != null) ...[

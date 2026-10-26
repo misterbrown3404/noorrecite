@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -112,7 +113,7 @@ class _CardShell extends StatelessWidget {
                     borderRadius: AppRadii.cardRadius,
                   ),
                   child: const Icon(
-                    Icons.headphones,
+                    LucideIcons.headphones,
                     color: AppColors.secondary,
                     size: 18,
                   ),
@@ -159,7 +160,7 @@ class _CardShell extends StatelessWidget {
                 PressableScale(
                   onTap: onPrev ?? () {},
                   child: Icon(
-                    Icons.skip_previous_rounded,
+                    LucideIcons.skipBack,
                     color: onPrev == null
                         ? AppColors.onSurfaceVariant.withValues(alpha: 0.4)
                         : AppColors.onSurfaceVariant,
@@ -180,13 +181,13 @@ class _CardShell extends StatelessWidget {
                         ? Obx(
                             () => Icon(
                               a.isPlaying.value
-                                  ? Icons.pause_rounded
-                                  : Icons.play_arrow_rounded,
+                                  ? LucideIcons.pause
+                                  : LucideIcons.play,
                               color: AppColors.primary,
                             ),
                           )
                         : const Icon(
-                            Icons.play_arrow_rounded,
+                            LucideIcons.play,
                             color: AppColors.primary,
                           ),
                   ),
@@ -195,7 +196,7 @@ class _CardShell extends StatelessWidget {
                 PressableScale(
                   onTap: onNext ?? () {},
                   child: Icon(
-                    Icons.skip_next_rounded,
+                    LucideIcons.skipForward,
                     color: onNext == null
                         ? AppColors.onSurfaceVariant.withValues(alpha: 0.4)
                         : AppColors.onSurfaceVariant,
@@ -211,10 +212,7 @@ class _CardShell extends StatelessWidget {
                     ),
                   )
                 else
-                  Text(
-                    positionLabel ?? '',
-                    style: AppTypography.bodyEnSm,
-                  ),
+                  Text(positionLabel ?? '', style: AppTypography.bodyEnSm),
               ],
             ),
           ],

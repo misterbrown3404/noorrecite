@@ -12,7 +12,9 @@ abstract final class FailureMapper {
     if (error is DioException) return _fromDio(error, stack);
     if (error is DataFormatException) {
       CrashReporter.instance.recordError(error, stack, reason: 'data format');
-      return const ServerFailure('We received an unexpected response. Please try again.');
+      return const ServerFailure(
+        'We received an unexpected response. Please try again.',
+      );
     }
     CrashReporter.instance.recordError(error, stack, reason: 'unhandled');
     return const ServerFailure('Something went wrong. Please try again.');
@@ -31,8 +33,7 @@ abstract final class FailureMapper {
       case DioExceptionType.badResponse:
         final code = e.response?.statusCode;
         if (code != null && code >= 500) {
-          CrashReporter.instance
-              .recordError(e, stack, reason: 'server $code');
+          CrashReporter.instance.recordError(e, stack, reason: 'server $code');
           return const ServerFailure(
             'Our servers are having trouble. Please try again shortly.',
           );

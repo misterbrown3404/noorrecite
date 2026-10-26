@@ -21,7 +21,7 @@ import '../../features/reciters/presentation/controllers/reciter_controller.dart
 /// actual request success (it surfaces a Failure the user can retry manually).
 class ConnectivityController extends GetxController {
   ConnectivityController([Connectivity? connectivity])
-      : _connectivity = connectivity ?? Connectivity();
+    : _connectivity = connectivity ?? Connectivity();
 
   final Connectivity _connectivity;
   StreamSubscription<List<ConnectivityResult>>? _sub;
@@ -36,8 +36,11 @@ class ConnectivityController extends GetxController {
     _probeInitial();
     _sub = _connectivity.onConnectivityChanged.listen(
       _handleResults,
-      onError: (Object e, StackTrace s) =>
-          CrashReporter.instance.recordError(e, s, reason: 'connectivity stream'),
+      onError: (Object e, StackTrace s) => CrashReporter.instance.recordError(
+        e,
+        s,
+        reason: 'connectivity stream',
+      ),
     );
   }
 
@@ -45,8 +48,11 @@ class ConnectivityController extends GetxController {
     try {
       _handleResults(await _connectivity.checkConnectivity());
     } catch (e, s) {
-      CrashReporter.instance
-          .recordError(e, s, reason: 'connectivity initial probe');
+      CrashReporter.instance.recordError(
+        e,
+        s,
+        reason: 'connectivity initial probe',
+      );
     }
   }
 

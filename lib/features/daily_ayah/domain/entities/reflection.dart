@@ -19,18 +19,18 @@ class Reflection {
   String get verseKey => '$surahId-$ayahNumber';
 
   factory Reflection.fromJson(Map<String, dynamic> json) => Reflection(
-        surahId: json['surahId'] as int,
-        ayahNumber: json['ayahNumber'] as int,
-        reference: json['reference'] as String? ?? '',
-        note: json['note'] as String? ?? '',
-        savedAtMs: json['savedAtMs'] as int? ?? 0,
-      );
+    surahId: json['surahId'] as int,
+    ayahNumber: json['ayahNumber'] as int,
+    reference: json['reference'] as String? ?? '',
+    note: json['note'] as String? ?? '',
+    savedAtMs: json['savedAtMs'] as int? ?? 0,
+  );
 
   Map<String, dynamic> toJson() => {
-        'surahId': surahId,
-        'ayahNumber': ayahNumber,
-        'reference': reference,
-        'note': note,
-        'savedAtMs': savedAtMs,
-      };
+    'surahId': surahId,
+    'ayahNumber': ayahNumber,
+    'reference': reference,
+    'note': note,
+    'savedAtMs': savedAtMs,
+  };
 }

@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:get/get.dart';
@@ -155,10 +156,7 @@ class _AddReflectionPageState extends State<AddReflectionPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Reflection'),
-        
-      ),
+      appBar: AppBar(title: const Text('Add Reflection')),
       body: GeometricBackground(
         child: SafeArea(
           bottom: false,
@@ -198,7 +196,7 @@ class _AddReflectionPageState extends State<AddReflectionPage> {
                                   child: Row(
                                     children: [
                                       const Icon(
-                                        Icons.menu_book_rounded,
+                                        LucideIcons.bookOpen,
                                         color: AppColors.primary,
                                         size: 24,
                                       ),
@@ -212,7 +210,7 @@ class _AddReflectionPageState extends State<AddReflectionPage> {
                                         ),
                                       ),
                                       const Icon(
-                                        Icons.chevron_right_rounded,
+                                        LucideIcons.chevronRight,
                                         color: AppColors.onSurfaceVariant,
                                       ),
                                     ],
@@ -230,7 +228,7 @@ class _AddReflectionPageState extends State<AddReflectionPage> {
                               Row(
                                 children: [
                                   const Icon(
-                                    Icons.edit_note_rounded,
+                                    LucideIcons.notebookPen,
                                     color: AppColors.tertiary,
                                   ),
                                   const SizedBox(width: AppSpacing.xs),
@@ -279,7 +277,7 @@ class _AddReflectionPageState extends State<AddReflectionPage> {
                             const SizedBox(width: AppSpacing.sm),
                             GlowPrimaryButton(
                               label: l10n.saveReflection,
-                              trailingIcon: Icons.check_circle_outline,
+                              trailingIcon: LucideIcons.circleCheck,
                               expand: false,
                               height: 44,
                               onPressed: _saveReflection,
@@ -345,12 +343,12 @@ class _AddReflectionPageState extends State<AddReflectionPage> {
     }
 
     Get.find<ReflectionsController>().save(
-          surahId: _selectedSurahId,
-          ayahNumber: _selectedAyahNumber,
-          reference: _selectedAyah,
-          note: _textController.text.trim(),
-          savedAtMs: DateTime.now().millisecondsSinceEpoch,
-        );
+      surahId: _selectedSurahId,
+      ayahNumber: _selectedAyahNumber,
+      reference: _selectedAyah,
+      note: _textController.text.trim(),
+      savedAtMs: DateTime.now().millisecondsSinceEpoch,
+    );
 
     Get.snackbar(
       l10n.saved,

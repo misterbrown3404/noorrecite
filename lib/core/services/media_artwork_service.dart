@@ -49,8 +49,11 @@ class MediaArtworkService {
       _cache[assetPath] = uri;
       return uri;
     } catch (e, s) {
-      CrashReporter.instance
-          .recordError(e, s, reason: 'artwork materialize: $assetPath');
+      CrashReporter.instance.recordError(
+        e,
+        s,
+        reason: 'artwork materialize: $assetPath',
+      );
       return null;
     }
   }

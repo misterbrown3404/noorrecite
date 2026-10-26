@@ -21,10 +21,7 @@ class DailyAyahController extends GetxController {
     isLoading(true);
     error('');
     final result = await _getDailyAyah();
-    result.fold(
-      (f) => error(f.message),
-      (data) => dailyAyah.value = data,
-    );
+    result.fold((f) => error(f.message), (data) => dailyAyah.value = data);
     isLoading(false);
   }
 }

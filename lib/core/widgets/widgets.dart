@@ -24,3 +24,5 @@ export 'phone_frame.dart';
 export 'pill_tag.dart';
 export 'section_header.dart';
 export 'surah_ornament_number.dart';
+
+export 'feature_intro.dart';

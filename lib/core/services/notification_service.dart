@@ -1,4 +1,8 @@
-import 'package:adhan/adhan.dart' as adhan;
+import 'permission_requests.dart';
+import 'prayer_schedule.dart';
+import 'package:get/get.dart';
+import '../../app/routes/app_routes.dart';
+import '../../features/azkar/data/worship_repository.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -17,6 +21,9 @@ class NotificationService {
 
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  final reminderStatus = ValueNotifier<String>('Reminders not checked yet');
+  final pendingPrayerCount = ValueNotifier<int>(0);
+  Future<void> _syncWork = Future.value();
 
   // Channel id is versioned: an Android notification channel's sound is fixed
   // at creation and immutable afterward, so switching to the adhan sound
@@ -30,6 +37,23 @@ class NotificationService {
   ];
   static const _reflectionChannelId = 'daily_reflection';
   static const _reflectionId = 100;
+  static String? _pendingDestination;
+
+  static Future<void> openPendingReminder() async {
+    final payload = _pendingDestination;
+    if (payload == null || Get.key.currentState == null) return;
+    _pendingDestination = null;
+    if (payload == 'daily_ayah') {
+      Get.toNamed(AppRoutes.dailyReflection);
+    } else if (payload.startsWith('azkar:')) {
+      final categories = await WorshipRepository().categories();
+      final id = payload == 'azkar:morning' ? 1 : 2;
+      Get.toNamed(
+        AppRoutes.azkarCategory,
+        arguments: categories.firstWhere((category) => category.id == id),
+      );
+    }
+  }
 
   /// Notification payload marking a prayer-time alert; tapping it plays the
   /// full adhan. Format: `adhan:<PrayerName>`.
@@ -62,7 +86,11 @@ class NotificationService {
       requestSoundPermission: false,
     );
     await _plugin.initialize(
-      settings: const InitializationSettings(android: android, iOS: ios),
+      settings: const InitializationSettings(
+        android: android,
+        iOS: ios,
+        macOS: ios,
+      ),
       onDidReceiveNotificationResponse: _onNotificationResponse,
     );
 
@@ -111,10 +139,19 @@ class NotificationService {
   static void _handlePayload(String? payload) {
     if (payload != null && payload.startsWith(_adhanPayload)) {
       AdhanAudioService.instance.play();
+    } else if (payload == 'daily_ayah' ||
+        (payload?.startsWith('azkar:') ?? false)) {
+      _pendingDestination = payload;
+      openPendingReminder();
     }
   }
 
-  Future<bool> requestPermission() async {
+  Future<bool> requestPermission({bool requestExactAlarm = false}) =>
+      PermissionRequests.run(
+        () => _requestPermission(requestExactAlarm: requestExactAlarm),
+      );
+
+  Future<bool> _requestPermission({bool requestExactAlarm = false}) async {
     final android = _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -125,7 +162,9 @@ class NotificationService {
         >();
     if (android != null) {
       final notif = await android.requestNotificationsPermission() ?? false;
-      await android.requestExactAlarmsPermission();
+      if (notif && requestExactAlarm) {
+        await android.requestExactAlarmsPermission();
+      }
       return notif;
     }
     if (ios != null) {
@@ -136,7 +175,16 @@ class NotificationService {
           ) ??
           false;
     }
-    return false;
+    final macos = _plugin
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >();
+    return await macos?.requestPermissions(
+          alert: true,
+          sound: true,
+          badge: true,
+        ) ??
+        false;
   }
 
   NotificationDetails get _prayerDetails => NotificationDetails(
@@ -154,9 +202,13 @@ class NotificationService {
       playSound: true,
       enableVibration: true,
     ),
-    iOS: const DarwinNotificationDetails(
+    macOS: const DarwinNotificationDetails(
       presentAlert: true,
       presentSound: true,
+    ),
+    iOS: const DarwinNotificationDetails(
+      presentAlert: true,
+      presentSound: false,
       // iOS caps notification sounds at ~30s; full adhan plays in-app
       // via AdhanAudioService when the notification is tapped.
     ),
@@ -170,29 +222,22 @@ class NotificationService {
       importance: Importance.defaultImportance,
     ),
     iOS: const DarwinNotificationDetails(presentAlert: true),
+    macOS: const DarwinNotificationDetails(presentAlert: true),
   );
 
   /// Schedule prayer-time notifications for the next 7 days using [lat]/[lng].
   Future<void> schedulePrayerNotifications(double lat, double lng) async {
     await cancelPrayerNotifications();
-    final coords = adhan.Coordinates(lat, lng);
-    final params = adhan.CalculationMethod.muslim_world_league.getParameters()
-      ..madhab = adhan.Madhab.shafi;
+    var scheduledCount = 0;
+    var failures = 0;
+    var inexact = false;
     final now = tz.TZDateTime.now(tz.local);
 
     for (var day = 0; day < 7; day++) {
       final date = DateTime.now().add(Duration(days: day));
-      final pt = adhan.PrayerTimes(
-        coords,
-        adhan.DateComponents(date.year, date.month, date.day),
-        params,
-      );
       final times = {
-        'Fajr': pt.fajr,
-        'Dhuhr': pt.dhuhr,
-        'Asr': pt.asr,
-        'Maghrib': pt.maghrib,
-        'Isha': pt.isha,
+        for (final prayer in PrayerSchedule.times(lat, lng, date))
+          prayer.name: prayer.time,
       };
       for (final name in _prayerNames) {
         final time = times[name]!;
@@ -209,6 +254,7 @@ class NotificationService {
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
             payload: '$_adhanPayload:$name',
           );
+          scheduledCount++;
         } catch (_) {
           // If exact alarm permission is denied by user/OS, fall back to inexact
           // so the notification still triggers near prayer time.
@@ -222,16 +268,50 @@ class NotificationService {
               androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
               payload: '$_adhanPayload:$name',
             );
+            scheduledCount++;
+            inexact = true;
           } catch (e) {
+            failures++;
             debugPrint('Failed to schedule $name notification: $e');
           }
         }
       }
+      for (final entry in [
+        ('Fajr', 'morning', 200),
+        ('Maghrib', 'evening', 201),
+      ]) {
+        final when = tz.TZDateTime.from(
+          times[entry.$1]!.add(const Duration(minutes: 10)),
+          tz.local,
+        );
+        if (!when.isAfter(now)) continue;
+        try {
+          final approximate = await _scheduleWorship(
+            id: entry.$3 + day * 2,
+            title: entry.$2 == 'morning' ? 'Morning Azkar' : 'Evening Azkar',
+            body: 'Take a moment for remembrance.',
+            when: when,
+            payload: 'azkar:${entry.$2}',
+          );
+          inexact = inexact || approximate;
+        } catch (_) {
+          failures++;
+        }
+      }
     }
+    pendingPrayerCount.value = scheduledCount;
+    reminderStatus.value = failures > 0
+        ? '$scheduledCount reminders scheduled; $failures failed. Try refreshing.'
+        : inexact
+        ? '$scheduledCount reminders scheduled · approximate timing (exact alarms unavailable)'
+        : '$scheduledCount prayer reminders + morning/evening Azkar scheduled for the next 7 days';
   }
 
   Future<void> cancelPrayerNotifications() async {
+    pendingPrayerCount.value = 0;
     for (var day = 0; day < 7; day++) {
+      await _plugin.cancel(id: 200 + day * 2);
+      await _plugin.cancel(id: 201 + day * 2);
       for (final id in _prayerBaseIds.values) {
         await _plugin.cancel(id: id + day * 10);
       }
@@ -241,51 +321,134 @@ class NotificationService {
   /// Reconcile the scheduled prayer notifications with the current settings and
   /// location. Safe to call on every app open and location refresh — this is
   /// what keeps a rolling 7-day window fresh.
-  Future<void> syncPrayerSchedule({
+  Future<bool> syncPrayerSchedule({
     required bool enabled,
     double? lat,
     double? lng,
-  }) async {
-    if (enabled && lat != null && lng != null) {
-      await requestPermission();
-      await schedulePrayerNotifications(lat, lng);
-    } else {
-      await cancelPrayerNotifications();
-    }
+    bool requestExactAlarm = false,
+  }) {
+    final operation = _syncWork.then((_) async {
+      try {
+        if (!_initialized) await init();
+        if (!enabled) {
+          await cancelPrayerNotifications();
+          reminderStatus.value = 'Prayer reminders are off';
+          return false;
+        }
+        if (!await requestPermission(requestExactAlarm: requestExactAlarm)) {
+          await cancelPrayerNotifications();
+          reminderStatus.value =
+              'Notifications are blocked. Enable them in system settings.';
+          return false;
+        }
+        if (lat == null || lng == null) {
+          reminderStatus.value =
+              'Location is needed before reminders can be scheduled';
+          return true;
+        }
+        await schedulePrayerNotifications(lat, lng);
+        return true;
+      } catch (e) {
+        reminderStatus.value = 'Couldn’t schedule reminders. Please try again.';
+        rethrow;
+      }
+    });
+    _syncWork = operation.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return operation;
   }
 
-  /// Schedule a daily reflection reminder at 8:00 AM every day.
-  Future<void> scheduleDailyReflection() async {
-    await cancelDailyReflection();
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, 8);
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
+  Future<bool> scheduleTestReminder() async {
+    if (!_initialized) await init();
+    if (!await requestPermission(requestExactAlarm: true)) return false;
+    final when = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
     try {
       await _plugin.zonedSchedule(
-        id: _reflectionId,
-        title: 'Daily Reflection',
-        body: 'Your daily ayah is ready — take a moment to reflect.',
-        scheduledDate: scheduled,
-        notificationDetails: _reflectionDetails,
+        id: 998,
+        title: 'Prayer reminder test',
+        body: 'Your prayer reminder is working. Tap to preview the adhan.',
+        scheduledDate: when,
+        notificationDetails: _prayerDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
+        payload: 'adhan:Test',
       );
     } catch (_) {
       await _plugin.zonedSchedule(
-        id: _reflectionId,
-        title: 'Daily Reflection',
-        body: 'Your daily ayah is ready — take a moment to reflect.',
-        scheduledDate: scheduled,
+        id: 998,
+        title: 'Prayer reminder test',
+        body: 'Your prayer reminder is working. Tap to preview the adhan.',
+        scheduledDate: when,
+        notificationDetails: _prayerDetails,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: 'adhan:Test',
+      );
+    }
+    return true;
+  }
+
+  /// Returns true when the OS only permits approximate delivery.
+  Future<bool> _scheduleWorship({
+    required int id,
+    required String title,
+    required String body,
+    required tz.TZDateTime when,
+    required String payload,
+    bool daily = false,
+  }) async {
+    try {
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: when,
+        notificationDetails: _reflectionDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: daily ? DateTimeComponents.time : null,
+        payload: payload,
+      );
+      return false;
+    } catch (_) {
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: when,
         notificationDetails: _reflectionDetails,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
+        matchDateTimeComponents: daily ? DateTimeComponents.time : null,
+        payload: payload,
+      );
+      return true;
+    }
+  }
+
+  Future<void> scheduleDailyReflection() async {
+    if (!_initialized) await init();
+    await cancelDailyReflection();
+    if (!await requestPermission()) return;
+    final now = tz.TZDateTime.now(tz.local);
+    for (final hour in [9, 18]) {
+      var when = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
+      if (!when.isAfter(now)) {
+        when = tz.TZDateTime(tz.local, now.year, now.month, now.day + 1, hour);
+      }
+      await _scheduleWorship(
+        id: hour == 9 ? _reflectionId : 101,
+        title: 'Daily Ayah',
+        body: 'Your daily ayah is ready — take a moment to reflect.',
+        when: when,
+        payload: 'daily_ayah',
+        daily: true,
       );
     }
   }
 
-  Future<void> cancelDailyReflection() => _plugin.cancel(id: _reflectionId);
+  Future<void> cancelDailyReflection() async {
+    await _plugin.cancel(id: _reflectionId);
+    await _plugin.cancel(id: 101);
+  }
 
   // ---------------------------------------------------------------------------
   // TEMPORARY — manual adhan test. Remove before Play Store upload.

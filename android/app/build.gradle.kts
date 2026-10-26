@@ -25,7 +25,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.nurehub.qariverse"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -46,8 +45,7 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Release artifacts must use the developer-owned upload key.
             signingConfig = signingConfigs.getByName("release")
         }
     }
@@ -65,4 +63,14 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+// Fail with a useful message instead of a late signing NullPointerException.
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name == "signReleaseBundle" || it.name == "validateSigningRelease" }) {
+        val required = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+        check(keystorePropertiesFile.exists() && required.all { !keystoreProperties.getProperty(it).isNullOrBlank() }) {
+            "Release signing is not configured. Copy android/key.properties.example to android/key.properties and configure your upload keystore locally."
+        }
+    }
 }

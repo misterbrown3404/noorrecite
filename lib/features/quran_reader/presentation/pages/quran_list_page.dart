@@ -1,382 +1,324 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:quran/quran.dart' as quran;
 import '../../../../app/routes/app_routes.dart';
-import '../../../../core/constants/app_assets.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/surah.dart';
 import '../controllers/surah_controller.dart';
 
-/// Quran surah list: search, filter chips, a "Last Read" hero, then a
-/// responsive asymmetric grid of surah cards.
-class QuranListPage extends StatelessWidget {
+class QuranListPage extends StatefulWidget {
   const QuranListPage({super.key});
-
-  static const _filters = [
-    'All Surahs',
-    'Juz',
-    'Makkah',
-    'Madinah',
-    'Bookmarks',
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quran'),
-        actions: [
-          HeaderIconAction(
-            icon: Icons.settings_rounded,
-            onTap: () => Get.toNamed(AppRoutes.settings),
-          ),
-        ],
-      ),
-      body: GeometricBackground(
-        child: SafeArea(
-          bottom: false,
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 140),
-            children: [
-              const SizedBox(height: AppSpacing.sm),
-              const _SearchBar(),
-              const SizedBox(height: AppSpacing.md),
-              _filterChips(),
-              const SizedBox(height: AppSpacing.lg),
-              const Padding(
-                padding: AppSpacing.screenPadding,
-                child: _LastReadHero(),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.margin,
-                ),
-                child: _SurahGrid(),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _filterChips() {
-    final controller = Get.find<SurahController>();
-    return SizedBox(
-      height: 36,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: AppSpacing.screenPadding,
-        itemCount: _filters.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-        itemBuilder: (context, i) {
-          return Obx(() {
-            final selected = controller.filter.value.index == i;
-            return PressableScale(
-              onTap: () => controller.setFilter(SurahFilter.values[i]),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOutCubic,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.primary
-                      : AppColors.surfaceContainerLowest,
-                  borderRadius: AppRadii.pillRadius,
-                  boxShadow: selected
-                      ? AppShadows.primaryGlow(opacity: 0.25)
-                      : null,
-                  border: Border.all(
-                    color: selected
-                        ? Colors.transparent
-                        : AppColors.outlineVariant.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  _filters[i],
-                  style: AppTypography.labelSemibold.copyWith(
-                    color: selected ? AppColors.onPrimary : AppColors.onSurface,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            );
-          });
-        },
-      ),
-    );
-  }
+  State<QuranListPage> createState() => _QuranListPageState();
 }
 
-class _SearchBar extends StatefulWidget {
-  const _SearchBar();
-
-  @override
-  State<_SearchBar> createState() => _SearchBarState();
-}
-
-class _SearchBarState extends State<_SearchBar> {
-  final _controller = TextEditingController();
-
+class _QuranListPageState extends State<QuranListPage> {
+  final _search = TextEditingController();
+  int _juz = 1;
   @override
   void dispose() {
-    _controller.dispose();
+    _search.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<SurahController>();
-    return Padding(
-      padding: AppSpacing.screenPadding,
-      child: NeumorphicInsetField(
-        child: Row(
-          children: [
-            Icon(Icons.search, color: AppColors.outline),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                decoration: const InputDecoration(
-                  hintText: 'Search Surah, Juz, or Keyword...',
-                  border: InputBorder.none,
-                  isDense: true,
+    final colors = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Quran',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        toolbarHeight: 64,
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        shape: const RoundedRectangleBorder(),
+        actions: [
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(LucideIcons.settings),
+            onPressed: () => Get.toNamed(AppRoutes.settings),
+          ),
+        ],
+      ),
+      body: Obx(() {
+        var surahs = controller.filteredSuwar;
+        if (controller.filter.value == SurahFilter.juz) {
+          final ids = quran.getSurahAndVersesFromJuz(_juz).keys.toSet();
+          surahs = surahs.where((s) => ids.contains(s.id)).toList();
+        }
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _search,
+                      onChanged: (value) {
+                        controller.searchQuery.value = value;
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search surahs',
+                        filled: true,
+                        fillColor: colors.surfaceContainerLow,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(18),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(18),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: const Icon(LucideIcons.search),
+                        suffixIcon: _search.text.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear search',
+                                icon: const Icon(LucideIcons.x),
+                                onPressed: () {
+                                  _search.clear();
+                                  controller.searchQuery.value = '';
+                                  setState(() {});
+                                },
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (final (filter, label) in [
+                            (SurahFilter.all, 'All'),
+                            (SurahFilter.juz, 'Juz'),
+                            (SurahFilter.makki, 'Makkah'),
+                            (SurahFilter.madani, 'Madinah'),
+                            (SurahFilter.bookmarks, 'Saved'),
+                          ])
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(end: 8),
+                              child: ChoiceChip(
+                                label: Text(label),
+                                selected: controller.filter.value == filter,
+                                onSelected: (_) => controller.setFilter(filter),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (controller.filter.value == SurahFilter.juz)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: DropdownButtonFormField<int>(
+                          initialValue: _juz,
+                          decoration: const InputDecoration(labelText: 'Juz'),
+                          items: [
+                            for (var n = 1; n <= 30; n++)
+                              DropdownMenuItem(value: n, child: Text('Juz $n')),
+                          ],
+                          onChanged: (value) =>
+                              setState(() => _juz = value ?? 1),
+                        ),
+                      ),
+                    if (controller.lastRead.value != null &&
+                        _search.text.isEmpty) ...[
+                      const SizedBox(height: 20),
+                      PressableScale(
+                        onTap: () {
+                          final matches = controller.suwar.where(
+                            (s) => s.id == controller.lastRead.value!.surahId,
+                          );
+                          if (matches.isNotEmpty) {
+                            Get.toNamed(
+                              AppRoutes.ayahReader,
+                              arguments: matches.first,
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: colors.primary,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                LucideIcons.bookOpen,
+                                color: colors.onPrimary,
+                                size: 30,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'CONTINUE READING',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        letterSpacing: 1.5,
+                                        color: colors.onPrimary.withValues(
+                                          alpha: .7,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      controller.lastRead.value!.surahName,
+                                      style: TextStyle(
+                                        color: colors.onPrimary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Verse ${controller.lastRead.value!.ayah}',
+                                      style: TextStyle(
+                                        color: colors.onPrimary.withValues(
+                                          alpha: .8,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                LucideIcons.arrowRight,
+                                color: colors.onPrimary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                onChanged: (value) => controller.searchQuery.value = value,
               ),
             ),
-            if (_controller.text.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.clear, size: 18),
-                onPressed: () {
-                  _controller.clear();
-                  controller.searchQuery.value = '';
-                },
+            if (controller.isLoading.value)
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (controller.error.value.isNotEmpty)
+              SliverFillRemaining(
+                child: ErrorStateView(
+                  message: controller.error.value,
+                  onRetry: controller.fetchSuwar,
+                ),
+              )
+            else if (surahs.isEmpty)
+              const SliverFillRemaining(
+                child: EmptyState(
+                  title: 'No surahs found',
+                  message: 'Try another search or filter.',
+                  icon: LucideIcons.search,
+                ),
+              )
+            else
+              SliverList.builder(
+                itemCount: surahs.length,
+                itemBuilder: (context, index) =>
+                    _SurahTile(surah: surahs[index]),
               ),
+            const SliverToBoxAdapter(child: SizedBox(height: 150)),
           ],
-        ),
-      ),
+        );
+      }),
     );
   }
 }
 
-class _LastReadHero extends StatelessWidget {
-  const _LastReadHero();
-
+class _SurahTile extends StatelessWidget {
+  const _SurahTile({required this.surah});
+  final Surah surah;
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<SurahController>();
-    return Obx(() {
-      final lr = controller.lastRead.value;
-      if (lr == null) return const SizedBox.shrink();
-      return ParallaxWidget(
-        maxTranslationX: 8,
-        maxTranslationY: 8,
-        child: Container(
-          padding: AppSpacing.cardInsets,
-          decoration: BoxDecoration(
-            borderRadius: AppRadii.cardRadius,
-            boxShadow: AppShadows.card,
-            image: DecorationImage(
-              image: AssetImage(AppAssets.fatihaPage),
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Color(0xCC00584A),
-                BlendMode.darken,
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Get.toNamed(AppRoutes.ayahReader, arguments: surah),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: colors.outlineVariant.withValues(alpha: .35),
+                ),
               ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: 4,
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: colors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${surah.id}',
+                    style: TextStyle(
+                      color: colors.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: AppRadii.pillRadius,
-                ),
-                child: Text(
-                  'LAST READ',
-                  style: AppTypography.labelCaps.copyWith(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        lr.surahName,
-                        style: AppTypography.headlineLgMobile.copyWith(
-                          color: Colors.white,
+                        quran.getSurahName(surah.id),
+                        style: TextStyle(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
                         ),
                       ),
+                      const SizedBox(height: 5),
                       Text(
-                        'Ayah ${lr.ayah}',
-                        style: AppTypography.bodyEnSm.copyWith(
-                          color: Colors.white70,
+                        '${surah.revelationLabel} · ${quran.getVerseCount(surah.id)} verses',
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 12,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AnimatedProgressBar(
-                value: lr.mushafProgress,
-                minHeight: 6,
-                color: Colors.white,
-                backgroundColor: Colors.white.withValues(alpha: 0.25),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${(lr.mushafProgress * 100).toStringAsFixed(0)}% Completed',
-                    style: AppTypography.bodyEnSm.copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                  Text(
-                    'Pages ${lr.pageStart}–${lr.pageEnd}',
-                    style: AppTypography.bodyEnSm.copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-}
-
-class _SurahGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final controller = Get.find<SurahController>();
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return Column(
-          children: List.generate(
-            4,
-            (_) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: SkeletonBox(
-                height: 120,
-                radius: AppRadii.cardRadius.topLeft.x,
-              ),
-            ),
-          ),
-        );
-      }
-      if (controller.error.value.isNotEmpty) {
-        return ErrorStateView(
-          message: controller.error.value,
-          onRetry: controller.fetchSuwar,
-        );
-      }
-      return Column(
-        children: [
-          const SizedBox(height: AppSpacing.md),
-          ResponsiveGrid(
-            columns: 2,
-            spacing: AppSpacing.md,
-            runSpacing: AppSpacing.md,
-            children: [
-              ...controller.filteredSuwar.map((s) => _SurahCard(surah: s)),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-        ],
-      );
-    });
-  }
-}
-
-class _SurahCard extends StatelessWidget {
-  const _SurahCard({required this.surah});
-  final Surah surah;
-
-  @override
-  Widget build(BuildContext context) {
-    return PressableScale(
-      onTap: () => Get.toNamed(AppRoutes.ayahReader, arguments: surah),
-      child: GlassCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SurahOrnamentNumber(number: surah.id),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        surah.name,
-                        textAlign: TextAlign.end,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.bodyAr.copyWith(
-                          fontSize: 22,
-                          height: 1.4,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Text(
-                        'PAGES ${surah.startPage}–${surah.endPage}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.labelCaps.copyWith(fontSize: 10),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    quran.getSurahNameArabic(surah.id),
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(
+                      fontFamily: 'Amiri',
+                      color: colors.primary,
+                      fontSize: 24,
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(surah.name, style: AppTypography.titleLg),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Flexible(child: PillTag(label: surah.revelationLabel)),
-                // const SizedBox(width: AppSpacing.xs),
-                // SizedBox(
-                //   width: 36,
-                //   height: 36,
-                //   child: DecoratedBox(
-                //     decoration: BoxDecoration(
-                //       color: AppColors.secondaryContainer.withValues(
-                //         alpha: 0.5,
-                //       ),
-                //       shape: BoxShape.circle,
-                //     ),
-                //     child: const Icon(
-                //       Icons.play_arrow_rounded,
-                //       color: AppColors.primary,
-                //       size: 18,
-                //     ),
-                //   ),
-                // ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

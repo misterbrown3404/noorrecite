@@ -17,7 +17,7 @@ class GeometricBackground extends StatelessWidget {
     super.key,
     required this.child,
     this.gradient = AppColors.backgroundGradient,
-    this.patternOpacity = 0.04,
+    this.patternOpacity = 0.018,
     this.showAura = false,
     this.auraColor = AppColors.primary,
     this.auraAlignment = const Alignment(0, -0.6),
@@ -39,10 +39,21 @@ class GeometricBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(gradient: gradient),
+      decoration: BoxDecoration(
+        gradient: Theme.of(context).brightness == Brightness.dark
+            ? LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.surface,
+                  Theme.of(context).colorScheme.surfaceContainerLow,
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              )
+            : gradient,
+      ),
       child: CustomPaint(
         painter: _StarPatternPainter(opacity: patternOpacity),
-        child: showAura
+        child: showAura && !MediaQuery.disableAnimationsOf(context)
             ? _AmbientAura(
                 color: auraColor,
                 alignment: auraAlignment,
@@ -73,9 +84,10 @@ class _AmbientAura extends StatefulWidget {
 
 class _AmbientAuraState extends State<_AmbientAura>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 8))
-        ..repeat();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 8),
+  )..repeat();
 
   @override
   void dispose() {
@@ -144,9 +156,12 @@ class _StarPatternPainter extends CustomPainter {
       final path = Path();
       for (int i = 0; i < 4; i++) {
         final angle = rotation + i * math.pi / 2;
-        final point = center +
+        final point =
+            center +
             Offset(math.cos(angle) * _radius, math.sin(angle) * _radius);
-        i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+        i == 0
+            ? path.moveTo(point.dx, point.dy)
+            : path.lineTo(point.dx, point.dy);
       }
       path.close();
       canvas.drawPath(path, paint);

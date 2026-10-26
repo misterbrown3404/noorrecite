@@ -74,4 +74,3 @@ class DownloadFileService {
   /// Returns true if the file at [filePath] exists on disk.
   bool exists(String filePath) => File(filePath).existsSync();
 }
-

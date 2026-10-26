@@ -9,6 +9,7 @@ import 'package:quran/quran.dart' as quran;
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/error/crash_reporter.dart';
 import '../../../../core/services/media_artwork_service.dart';
+import '../../../../core/services/adhan_audio_service.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
 import '../../../downloads/presentation/controllers/download_controller.dart';
@@ -49,7 +50,116 @@ class AudioController extends GetxController {
   );
   AudioPlayer get player => _player;
 
+  bool _azkarPreview = false;
+  String? _previewOwner;
+  bool get isAzkarPreview => _previewOwner == 'azkar';
+  bool get isAdhanPreview => _previewOwner == 'adhan';
+  List<AudioSource>? _savedSources;
+  int? _savedIndex;
+  Duration _savedPosition = Duration.zero;
+  double _savedSpeed = 1;
+  LoopMode _savedLoop = LoopMode.off;
+  bool _savedShuffle = false;
+  Future<void> _previewWork = Future.value();
+
+  Future<void> _serializePreview(Future<void> Function() operation) {
+    final result = _previewWork.then((_) => operation());
+    _previewWork = result.catchError((Object _, StackTrace _) {});
+    return result;
+  }
+
+  /// Temporarily borrow the single background player without changing Quran state.
+  Future<void> playAzkarPreview(String asset, String title) => playAudioPreview(
+    asset,
+    title,
+    owner: 'azkar',
+    artist: 'Muhammad Jumah',
+    album: 'OpenDua · Hisn al-Muslim',
+  );
+
+  Future<void> playAudioPreview(
+    String asset,
+    String title, {
+    required String owner,
+    required String artist,
+    required String album,
+  }) => _serializePreview(() async {
+    if (!_azkarPreview) {
+      await _persistSession();
+      _savedSources = List<AudioSource>.of(_player.audioSources);
+      _savedIndex = _player.currentIndex;
+      _savedPosition = _player.position;
+      _savedSpeed = _player.speed;
+      _savedLoop = _player.loopMode;
+      _savedShuffle = _player.shuffleModeEnabled;
+      _azkarPreview = true;
+      _persistDebounce?.cancel();
+    }
+    _previewOwner = owner;
+    await _player.pause();
+    isPlaying.value = false;
+    await _player.setLoopMode(LoopMode.off);
+    await _player.setShuffleModeEnabled(false);
+    await _player.setSpeed(1);
+    await _player.setAudioSource(
+      AudioSource.asset(
+        asset,
+        tag: MediaItem(id: asset, title: title, artist: artist, album: album),
+      ),
+    );
+    unawaited(
+      _player.play().catchError((Object e, StackTrace s) {
+        CrashReporter.instance.recordError(e, s, reason: 'Azkar playback');
+      }),
+    );
+  });
+
+  Future<void> endAzkarPreview() => endAudioPreview(owner: 'azkar');
+
+  Future<void> endAudioPreview({String? owner}) => _serializePreview(() async {
+    if (!_azkarPreview || (owner != null && owner != _previewOwner)) return;
+    await _player.pause();
+    try {
+      final sources = _savedSources ?? [];
+      if (sources.isNotEmpty) {
+        await _player.setAudioSources(
+          sources,
+          initialIndex: _savedIndex ?? 0,
+          initialPosition: _savedPosition,
+          preload: false,
+        );
+      } else {
+        await _player.clearAudioSources();
+      }
+      await _player.setSpeed(_savedSpeed);
+      await _player.setLoopMode(_savedLoop);
+      await _player.setShuffleModeEnabled(_savedShuffle);
+    } finally {
+      _azkarPreview = false;
+      _previewOwner = null;
+      _savedSources = null;
+      position.value = _savedPosition;
+      isPlaying.value = false;
+      isBuffering.value = false;
+    }
+  });
+
   Timer? _persistDebounce;
+  Timer? _sleepTimer;
+  final sleepMinutes = 0.obs;
+
+  void setSleepTimer(int minutes) {
+    _sleepTimer?.cancel();
+    sleepMinutes.value = minutes;
+    if (minutes <= 0) return;
+    _sleepTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      sleepMinutes.value--;
+      if (sleepMinutes.value <= 0) {
+        timer.cancel();
+        _player.pause();
+      }
+    });
+  }
 
   /// In-memory mirror of the persisted duration cache, so [cachedDuration] and
   /// [_cacheDuration] don't deserialize the whole Hive string on every access
@@ -90,9 +200,8 @@ class AudioController extends GetxController {
     return ms is int ? Duration(milliseconds: ms) : null;
   }
 
-  Map<String, dynamic> get _durationCache =>
-      _durationCacheMemo ??=
-          _storage.readJson(StorageKeys.audioDurations) ?? <String, dynamic>{};
+  Map<String, dynamic> get _durationCache => _durationCacheMemo ??=
+      _storage.readJson(StorageKeys.audioDurations) ?? <String, dynamic>{};
 
   Future<void> _cacheDuration(String trackId, Duration value) async {
     if (value <= Duration.zero) return;
@@ -110,6 +219,12 @@ class AudioController extends GetxController {
     _bindStreams();
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    AdhanAudioService.instance.playPending();
+  }
+
   Future<void> _configureSession() async {
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.music());
@@ -117,16 +232,19 @@ class AudioController extends GetxController {
 
   void _bindStreams() {
     _player.playerStateStream.listen((state) {
+      if (_azkarPreview) return;
       isPlaying.value = state.playing;
       isBuffering.value =
           state.processingState == ProcessingState.loading ||
           state.processingState == ProcessingState.buffering;
     });
     _player.positionStream.listen((p) {
+      if (_azkarPreview) return;
       position.value = p;
       _schedulePersist();
     });
     _player.durationStream.listen((d) {
+      if (_azkarPreview) return;
       duration.value = d ?? Duration.zero;
       // Persist the resolved duration so future plays (and the lock screen)
       // show total length instantly, without re-hitting the network header.
@@ -136,6 +254,7 @@ class AudioController extends GetxController {
       }
     });
     _player.currentIndexStream.listen((i) {
+      if (_azkarPreview) return;
       if (i != null) {
         currentIndex.value = i;
         _persistSession();
@@ -184,9 +303,7 @@ class AudioController extends GetxController {
     // this same reciter/moshaf. Seek to it instead of rebuilding the playlist,
     // which would otherwise stall or mute the switch mid-play.
     if (autoPlay && !_offlineMode) {
-      final existing = queue.indexWhere(
-        (t) => t.id == tracks[startIndex].id,
-      );
+      final existing = queue.indexWhere((t) => t.id == tracks[startIndex].id);
       if (existing >= 0) {
         await playAt(existing);
         return;
@@ -232,6 +349,7 @@ class AudioController extends GetxController {
     Duration? initialPosition,
     bool autoPlay = true,
   }) async {
+    await endAudioPreview();
     error.value = '';
 
     // Defensive copy. Callers sometimes pass `queue` itself (e.g. re-selecting
@@ -242,8 +360,9 @@ class AudioController extends GetxController {
     var effectiveTracks = List<AudioTrack>.of(tracks);
     var effectiveStart = startIndex;
     if (_offlineMode) {
-      final requestedId =
-          (startIndex >= 0 && startIndex < tracks.length) ? tracks[startIndex].id : null;
+      final requestedId = (startIndex >= 0 && startIndex < tracks.length)
+          ? tracks[startIndex].id
+          : null;
       final available = _downloadedOnly(tracks);
       if (available.isEmpty) {
         queue.clear();
@@ -291,8 +410,9 @@ class AudioController extends GetxController {
                   artist: t.reciterName,
                   album: t.moshafName,
                   duration: cachedDuration(t.id),
-                  artUri: artByAsset[AppAssets.reciterImage(t.reciterId) ??
-                      AppAssets.quranOnVelvet],
+                  artUri:
+                      artByAsset[AppAssets.reciterImage(t.reciterId) ??
+                          AppAssets.quranOnVelvet],
                 ),
               ),
             )
@@ -301,7 +421,14 @@ class AudioController extends GetxController {
         initialPosition: initialPosition,
       );
       currentIndex.value = startIndex;
-      if (autoPlay) await _player.play();
+      if (autoPlay) {
+        unawaited(
+          _player.play().catchError((Object e, StackTrace s) {
+            CrashReporter.instance.recordError(e, s, reason: 'start playback');
+            error.value = "Couldn't start playback. Please try again.";
+          }),
+        );
+      }
     } catch (e, s) {
       // Never surface raw exception text to users.
       CrashReporter.instance.recordError(e, s, reason: 'setQueue');
@@ -417,6 +544,7 @@ class AudioController extends GetxController {
   }
 
   Future<void> togglePlayPause() async {
+    await endAudioPreview();
     if (_player.playing) {
       await _player.pause();
     } else {
@@ -476,7 +604,9 @@ class AudioController extends GetxController {
 
   /// Debounce position saves to at most once per 5 s to avoid excessive I/O.
   void _schedulePersist() {
-    _persistDebounce?.cancel();
+    // Throttle writes; resetting the timer on every position event prevented
+    // continuous playback from ever saving its position.
+    if (_persistDebounce?.isActive ?? false) return;
     _persistDebounce = Timer(const Duration(seconds: 5), _persistSession);
   }
 
@@ -486,6 +616,7 @@ class AudioController extends GetxController {
   /// [resumeLastSession] rebuilds it from the reciter directory. This turns a
   /// ~114-track serialization (every 5 s) into a handful of fields.
   Future<void> _persistSession() async {
+    if (_azkarPreview) return;
     final track = currentTrack;
     if (track == null) return;
     await Future.wait([
@@ -504,6 +635,7 @@ class AudioController extends GetxController {
   @override
   void onClose() {
     _persistDebounce?.cancel();
+    _sleepTimer?.cancel();
     _player.dispose();
     super.onClose();
   }

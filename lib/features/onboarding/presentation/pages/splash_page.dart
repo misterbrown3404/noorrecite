@@ -1,14 +1,14 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'welcome_art.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
-import '../../../../core/constants/app_assets.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 
 /// Splash screen (mockups: splash_screen_1 / _2): a glowing gemstone tile with
@@ -30,12 +30,11 @@ class _SplashPageState extends State<SplashPage> {
     // later launch the flag is set and we jump straight to the main shell.
     final seenOnboarding =
         sl<LocalStorageService>().read<bool>(StorageKeys.onboardingComplete) ??
-            false;
+        false;
     final next = seenOnboarding ? AppRoutes.main : AppRoutes.onboarding;
-    _timer = Timer(
-      const Duration(milliseconds: 2200),
-      () => Get.offAllNamed(next),
-    );
+    _timer = Timer(Duration(milliseconds: seenOnboarding ? 900 : 1800), () {
+      if (mounted) Get.offAllNamed(next);
+    });
   }
 
   @override
@@ -46,71 +45,68 @@ class _SplashPageState extends State<SplashPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: GeometricBackground(
-        showAura: true,
-        child: Stack(
-          children: [
-            const ParticleField(particleCount: 35),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PulseGlow(
-                    color: AppColors.primaryFixedDim,
-                    child: Floating(
-                      amplitude: 6,
-                      child: Container(
-                        width: 210,
-                        height: 260,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(AppRadii.xl),
-                          boxShadow: AppShadows.card,
-                          image: const DecorationImage(
-                            image: AssetImage(AppAssets.splashQuran),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 400),
+      backgroundColor: colors.surface,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 360),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [Color(0xFFFFDDB5), Color(0xFFFFB957), Color(0xFF805200)],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ).createShader(bounds),
-                          child: Text('QariVerse',
-                              style: AppTypography.headlineLg.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              )),
+                        const FadeInUp(
+                          child: WelcomeArt(icon: LucideIcons.bookOpen),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Padding(
-                          padding: AppSpacing.screenPadding,
-                          child: Text(
-                            'Experience the Divine Echoes in a Modern Sanctuary',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.bodyEn,
+                        const SizedBox(height: 24),
+                        FadeInUp(
+                          delay: const Duration(milliseconds: 200),
+                          child: Column(
+                            children: [
+                              Text(
+                                'QariVerse',
+                                style: TextStyle(
+                                  color: colors.onSurface,
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'A little closer, every day.',
+                                style: TextStyle(
+                                  color: colors.onSurfaceVariant,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xxl),
-                        Text('BISMILLAH',
-                            style: AppTypography.labelCaps.copyWith(
-                                letterSpacing: 3, color: AppColors.outline)),
+                        const SizedBox(height: 36),
+                        SizedBox(
+                          width: 36,
+                          child: LinearProgressIndicator(
+                            minHeight: 3,
+                            borderRadius: BorderRadius.circular(4),
+                            value: MediaQuery.disableAnimationsOf(context)
+                                ? 1
+                                : null,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

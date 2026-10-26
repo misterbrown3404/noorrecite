@@ -8,10 +8,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:qariverse/core/utils/app_mappers.dart';
-import 'package:qariverse/core/utils/duration_format.dart';
-import 'package:qariverse/features/home/presentation/controllers/prayer_times_controller.dart';
+import 'package:qari_verse/core/utils/app_mappers.dart';
+import 'package:qari_verse/core/utils/duration_format.dart';
+import 'package:qari_verse/features/home/presentation/controllers/prayer_times_controller.dart';
 
 void main() {
   group('DurationFormat', () {

@@ -23,9 +23,10 @@ class SettingsController extends GetxController {
   final LocalStorageService _storage;
 
   final notificationsEnabled = true.obs;
-  final dailyReflectionReminder = false.obs;
+  final dailyReflectionReminder = true.obs;
   final themeMode = 'system'.obs;
   final offlineMode = false.obs;
+
   /// mp3quran language code, e.g. 'eng', 'ara'.
   final language = 'eng'.obs;
 
@@ -35,13 +36,26 @@ class SettingsController extends GetxController {
     _restore();
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    if (dailyReflectionReminder.value) {
+      NotificationService.instance.scheduleDailyReflection().catchError(
+        (Object _) {},
+      );
+    } else {
+      NotificationService.instance.cancelDailyReflection();
+    }
+  }
+
   void _restore() {
     final saved = _storage.readJson(StorageKeys.settings);
     if (saved == null) return;
     notificationsEnabled.value =
         (saved['notificationsEnabled'] as bool?) ?? notificationsEnabled.value;
     dailyReflectionReminder.value =
-        (saved['dailyReflectionReminder'] as bool?) ?? dailyReflectionReminder.value;
+        (saved['dailyReflectionReminder'] as bool?) ??
+        dailyReflectionReminder.value;
     themeMode.value = (saved['themeMode'] as String?) ?? themeMode.value;
     offlineMode.value = (saved['offlineMode'] as bool?) ?? offlineMode.value;
     language.value = (saved['language'] as String?) ?? language.value;
@@ -51,12 +65,16 @@ class SettingsController extends GetxController {
     notificationsEnabled.value = value;
     await _persist();
     final ns = NotificationService.instance;
-    if (value) await ns.requestPermission();
-    await ns.syncPrayerSchedule(
+    final allowed = await ns.syncPrayerSchedule(
       enabled: value,
+      requestExactAlarm: value,
       lat: _storage.read<double>(StorageKeys.lastLat),
       lng: _storage.read<double>(StorageKeys.lastLng),
     );
+    if (value && !allowed) {
+      notificationsEnabled.value = false;
+      await _persist();
+    }
   }
 
   Future<void> setDailyReflectionReminder(bool value) async {
@@ -64,7 +82,6 @@ class SettingsController extends GetxController {
     await _persist();
     final ns = NotificationService.instance;
     if (value) {
-      await ns.requestPermission();
       await ns.scheduleDailyReflection();
     } else {
       await ns.cancelDailyReflection();
@@ -90,10 +107,10 @@ class SettingsController extends GetxController {
   }
 
   Future<void> _persist() => _storage.writeJson(StorageKeys.settings, {
-        'notificationsEnabled': notificationsEnabled.value,
-        'dailyReflectionReminder': dailyReflectionReminder.value,
-        'themeMode': themeMode.value,
-        'offlineMode': offlineMode.value,
-        'language': language.value,
-      });
+    'notificationsEnabled': notificationsEnabled.value,
+    'dailyReflectionReminder': dailyReflectionReminder.value,
+    'themeMode': themeMode.value,
+    'offlineMode': offlineMode.value,
+    'language': language.value,
+  });
 }

@@ -1,4 +1,13 @@
+import '../../features/downloads/presentation/pages/download_center_page.dart';
+import '../../features/reading_progress/presentation/reading_statistics_page.dart';
+import '../../features/azkar/data/worship_repository.dart';
+import '../../features/azkar/presentation/pages/tasbih_page.dart';
+import '../../features/azkar/presentation/pages/duas_page.dart';
+import '../../features/azkar/presentation/pages/allah_names_page.dart';
+import '../../features/azkar/presentation/pages/azkar_category_page.dart';
 import 'package:get/get.dart';
+import '../../features/azkar/presentation/pages/azkar_page.dart';
+import '../../features/home/presentation/pages/prayer_times_page.dart';
 
 import '../../features/audio_player/presentation/pages/audio_player_page.dart';
 import '../../features/daily_ayah/presentation/pages/add_reflection_page.dart';
@@ -21,6 +30,28 @@ abstract final class AppPages {
   static const initial = AppRoutes.splash;
 
   static final routes = <GetPage>[
+    GetPage(
+      name: AppRoutes.downloadCenter,
+      page: () => const DownloadCenterPage(),
+    ),
+    GetPage(
+      name: AppRoutes.statistics,
+      page: () => const ReadingStatisticsPage(),
+    ),
+    GetPage(name: AppRoutes.duas, page: () => const DuasPage()),
+    GetPage(name: AppRoutes.allahNames, page: () => const AllahNamesPage()),
+    GetPage(name: AppRoutes.tasbih, page: () => const TasbihPage()),
+    GetPage(
+      name: AppRoutes.azkarCategory,
+      page: () {
+        final category = Get.arguments;
+        return category is AzkarCategory
+            ? AzkarCategoryPage(category: category)
+            : const AzkarPage();
+      },
+    ),
+    GetPage(name: AppRoutes.azkar, page: () => const AzkarPage()),
+    GetPage(name: AppRoutes.prayerTimes, page: () => const PrayerTimesPage()),
     GetPage(name: AppRoutes.splash, page: () => const SplashPage()),
     GetPage(name: AppRoutes.onboarding, page: () => const OnboardingPage()),
     GetPage(

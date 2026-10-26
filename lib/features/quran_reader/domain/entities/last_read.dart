@@ -28,22 +28,22 @@ class LastRead extends Equatable {
   double get mushafProgress => (pageEnd / mushafPages).clamp(0.0, 1.0);
 
   Map<String, dynamic> toJson() => {
-        'surahId': surahId,
-        'surahName': surahName,
-        'pageStart': pageStart,
-        'pageEnd': pageEnd,
-        'ayah': ayah,
-        'savedAtMs': savedAtMs,
-      };
+    'surahId': surahId,
+    'surahName': surahName,
+    'pageStart': pageStart,
+    'pageEnd': pageEnd,
+    'ayah': ayah,
+    'savedAtMs': savedAtMs,
+  };
 
   factory LastRead.fromJson(Map<String, dynamic> json) => LastRead(
-        surahId: json['surahId'] as int,
-        surahName: json['surahName'] as String,
-        pageStart: json['pageStart'] as int,
-        pageEnd: json['pageEnd'] as int,
-        ayah: (json['ayah'] as int?) ?? 1,
-        savedAtMs: (json['savedAtMs'] as int?) ?? 0,
-      );
+    surahId: json['surahId'] as int,
+    surahName: json['surahName'] as String,
+    pageStart: json['pageStart'] as int,
+    pageEnd: json['pageEnd'] as int,
+    ayah: (json['ayah'] as int?) ?? 1,
+    savedAtMs: (json['savedAtMs'] as int?) ?? 0,
+  );
 
   @override
   List<Object> get props => [surahId, ayah, savedAtMs];

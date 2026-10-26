@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:get/get.dart';
@@ -19,7 +20,7 @@ class ReflectionsListPage extends StatelessWidget {
         title: const Text('Reflections List'),
         // actions: [
         //   HeaderIconAction(
-        //     icon: Icons.settings_rounded,
+        //     icon: LucideIcons.settings,
         //     onTap: () => Get.toNamed(AppRoutes.settings),
         //   ),
         // ],
@@ -30,12 +31,20 @@ class ReflectionsListPage extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.only(bottom: 40),
             children: [
-              AppHeader(onMenu: Get.back),
+              const FeatureIntro(
+                title: 'Room to reflect.',
+                description: 'Keep the verses and thoughts that stay with you.',
+                icon: LucideIcons.notebookPen,
+              ),
               const SizedBox(height: AppSpacing.md),
               Center(
-                child: Text(l10n.allReflections,
-                    style: AppTypography.labelCaps
-                        .copyWith(color: AppColors.primary, letterSpacing: 2)),
+                child: Text(
+                  l10n.allReflections,
+                  style: AppTypography.labelCaps.copyWith(
+                    color: AppColors.primary,
+                    letterSpacing: 2,
+                  ),
+                ),
               ),
               const SizedBox(height: AppSpacing.xl),
               Padding(
@@ -46,7 +55,10 @@ class ReflectionsListPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(l10n.yourReflections, style: AppTypography.titleLg),
+                        Text(
+                          l10n.yourReflections,
+                          style: AppTypography.titleLg,
+                        ),
                         GhostGlassButton(
                           label: l10n.addReflection,
                           borderColor: AppColors.primary,
@@ -90,12 +102,18 @@ class _ReflectionsList extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 children: [
-                  const Icon(Icons.lightbulb_outline_rounded,
-                      color: AppColors.onSurfaceVariant, size: 48),
+                  const Icon(
+                    LucideIcons.lightbulb,
+                    color: AppColors.onSurfaceVariant,
+                    size: 48,
+                  ),
                   const SizedBox(height: AppSpacing.md),
-                  Text(l10n.noMoreReflections,
-                      style: AppTypography.titleLg
-                          .copyWith(color: AppColors.primary)),
+                  Text(
+                    l10n.noMoreReflections,
+                    style: AppTypography.titleLg.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     l10n.noMoreReflectionsSubtitle,
@@ -122,12 +140,16 @@ class _EmptyState extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: [
-            const Icon(Icons.lightbulb_outline_rounded,
-                color: AppColors.onSurfaceVariant, size: 48),
+            const Icon(
+              LucideIcons.lightbulb,
+              color: AppColors.onSurfaceVariant,
+              size: 48,
+            ),
             const SizedBox(height: AppSpacing.md),
-            Text(l10n.noMoreReflections,
-                style:
-                    AppTypography.titleLg.copyWith(color: AppColors.primary)),
+            Text(
+              l10n.noMoreReflections,
+              style: AppTypography.titleLg.copyWith(color: AppColors.primary),
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               l10n.noMoreReflectionsSubtitle,
@@ -137,7 +159,7 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             GlowPrimaryButton(
               label: l10n.addFirstReflection,
-              trailingIcon: Icons.add_circle_outline,
+              trailingIcon: LucideIcons.circlePlus,
               onPressed: () => Get.toNamed(AppRoutes.addReflection),
             ),
           ],
@@ -164,29 +186,40 @@ class _ReflectionCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(_relativeDate(reflection.savedAtMs),
-                    style: AppTypography.labelCaps
-                        .copyWith(color: AppColors.primary)),
+                Text(
+                  _relativeDate(reflection.savedAtMs),
+                  style: AppTypography.labelCaps.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
                 InkWell(
                   onTap: onDelete,
                   borderRadius: BorderRadius.circular(20),
                   child: const Padding(
                     padding: EdgeInsets.all(4),
-                    child: Icon(Icons.delete_outline_rounded,
-                        color: AppColors.onSurfaceVariant, size: 18),
+                    child: Icon(
+                      LucideIcons.trash2,
+                      color: AppColors.onSurfaceVariant,
+                      size: 18,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(reflection.reference,
-                style: AppTypography.labelSemibold.copyWith(fontSize: 13)),
+            Text(
+              reflection.reference,
+              style: AppTypography.labelSemibold.copyWith(fontSize: 13),
+            ),
             const SizedBox(height: AppSpacing.xs),
-            Text(reflection.note,
-                style: AppTypography.bodyEnSm
-                    .copyWith(color: AppColors.onSurfaceVariant),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis),
+            Text(
+              reflection.note,
+              style: AppTypography.bodyEnSm.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
@@ -198,9 +231,11 @@ class _ReflectionCard extends StatelessWidget {
     if (ms <= 0) return '';
     final then = DateTime.fromMillisecondsSinceEpoch(ms);
     final now = DateTime.now();
-    final days = DateTime(now.year, now.month, now.day)
-        .difference(DateTime(then.year, then.month, then.day))
-        .inDays;
+    final days = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).difference(DateTime(then.year, then.month, then.day)).inDays;
     if (days <= 0) return 'Today';
     if (days == 1) return 'Yesterday';
     if (days < 7) return '$days days ago';

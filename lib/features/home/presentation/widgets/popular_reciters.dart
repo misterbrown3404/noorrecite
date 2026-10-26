@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -115,7 +116,7 @@ class _ReciterAvatarFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: Icon(Icons.person_rounded, color: Colors.white, size: 56),
+      child: Icon(LucideIcons.userRound, color: Colors.white, size: 56),
     );
   }
 }

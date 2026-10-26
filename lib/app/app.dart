@@ -19,10 +19,12 @@ class QariVerseApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final storage = sl<LocalStorageService>();
     final saved = storage.readJson(StorageKeys.settings);
-    final initialLocale =
-        AppMappers.localeFromCode((saved?['language'] as String?) ?? 'eng');
-    final initialThemeMode = AppMappers
-        .themeModeFromString((saved?['themeMode'] as String?) ?? 'system');
+    final initialLocale = AppMappers.localeFromCode(
+      (saved?['language'] as String?) ?? 'eng',
+    );
+    final initialThemeMode = AppMappers.themeModeFromString(
+      (saved?['themeMode'] as String?) ?? 'system',
+    );
 
     return GetMaterialApp(
       title: 'QariVerse',

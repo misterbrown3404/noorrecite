@@ -22,22 +22,22 @@ class AudioTrack extends Equatable {
   String get id => '$reciterId-$moshafName-$surahNumber';
 
   Map<String, dynamic> toJson() => {
-        'surahNumber': surahNumber,
-        'surahName': surahName,
-        'reciterId': reciterId,
-        'reciterName': reciterName,
-        'moshafName': moshafName,
-        'url': url,
-      };
+    'surahNumber': surahNumber,
+    'surahName': surahName,
+    'reciterId': reciterId,
+    'reciterName': reciterName,
+    'moshafName': moshafName,
+    'url': url,
+  };
 
   factory AudioTrack.fromJson(Map<String, dynamic> json) => AudioTrack(
-        surahNumber: json['surahNumber'] as int,
-        surahName: json['surahName'] as String,
-        reciterId: json['reciterId'] as int,
-        reciterName: json['reciterName'] as String,
-        moshafName: json['moshafName'] as String,
-        url: json['url'] as String,
-      );
+    surahNumber: json['surahNumber'] as int,
+    surahName: json['surahName'] as String,
+    reciterId: json['reciterId'] as int,
+    reciterName: json['reciterName'] as String,
+    moshafName: json['moshafName'] as String,
+    url: json['url'] as String,
+  );
 
   @override
   List<Object> get props => [id];

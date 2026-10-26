@@ -1,6 +1,13 @@
 import 'package:get/get.dart';
+import '../core/services/notification_service.dart';
 
 class MainShellController extends GetxController {
+  @override
+  void onReady() {
+    super.onReady();
+    NotificationService.openPendingReminder();
+  }
+
   final currentIndex = 0.obs;
 
   /// Tabs the user has actually opened. Drives lazy tab construction in

@@ -17,5 +17,11 @@ abstract final class AppRoutes {
   static const statistics = '/statistics';
   static const ayahReader = '/ayah-reader';
   static const search = '/search';
+  static const duas = '/duas';
+  static const allahNames = '/allah-names';
+  static const tasbih = '/tasbih';
+  static const azkarCategory = '/azkar/category';
+  static const azkar = '/azkar';
+  static const prayerTimes = '/prayer-times';
   static const settings = '/settings';
 }

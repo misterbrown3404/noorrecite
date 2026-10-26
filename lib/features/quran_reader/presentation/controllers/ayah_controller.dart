@@ -39,7 +39,12 @@ class AyahController extends GetxController {
       // via a deep link before the surah list has been visited.
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (Get.isRegistered<SurahController>()) {
-          Get.find<SurahController>().markOpened(arg);
+          final reader = Get.find<SurahController>();
+          final saved = reader.lastRead.value;
+          reader.markOpened(
+            arg,
+            ayah: saved?.surahId == arg.id ? saved!.ayah : 1,
+          );
         }
       });
       fetchAyat(arg.id);
@@ -53,10 +58,7 @@ class AyahController extends GetxController {
     isLoading(true);
     error('');
     final result = await _getAyat(surahId);
-    result.fold(
-      (f) => error(f.message),
-      (data) => ayat.assignAll(data),
-    );
+    result.fold((f) => error(f.message), (data) => ayat.assignAll(data));
     isLoading(false);
   }
 
@@ -80,7 +82,9 @@ class AyahController extends GetxController {
     }
     final reciters = rc.reciters;
     if (reciters.isEmpty) {
-      error(rc.error.value.isNotEmpty ? rc.error.value : 'No reciters available.');
+      error(
+        rc.error.value.isNotEmpty ? rc.error.value : 'No reciters available.',
+      );
       return;
     }
 

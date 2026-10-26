@@ -18,7 +18,9 @@ class AyahRepositoryImpl implements AyahRepository {
     } catch (e, s) {
       // Source is on-device/offline — any failure is a local read issue.
       CrashReporter.instance.recordError(e, s, reason: 'getAyat($surahId)');
-      return const Left(CacheFailure('Could not load this surah. Please try again.'));
+      return const Left(
+        CacheFailure('Could not load this surah. Please try again.'),
+      );
     }
   }
 }

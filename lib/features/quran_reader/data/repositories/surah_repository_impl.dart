@@ -59,14 +59,16 @@ class SurahRepositoryImpl implements SurahRepository {
   Future<void> _writeCache(String language, List<Surah> suwar) async {
     final envelope = CacheEnvelope<List<dynamic>>(
       data: suwar
-          .map((s) => SurahModel(
-                id: s.id,
-                name: s.name,
-                startPage: s.startPage,
-                endPage: s.endPage,
-                type: s.type,
-                juz: s.juz,
-              ).toJson())
+          .map(
+            (s) => SurahModel(
+              id: s.id,
+              name: s.name,
+              startPage: s.startPage,
+              endPage: s.endPage,
+              type: s.type,
+              juz: s.juz,
+            ).toJson(),
+          )
           .toList(),
       savedAtMs: DateTime.now().millisecondsSinceEpoch,
     );

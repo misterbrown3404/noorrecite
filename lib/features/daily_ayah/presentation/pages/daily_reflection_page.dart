@@ -1,268 +1,174 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
-
 import '../../../../app/routes/app_routes.dart';
-import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../bookmarks/domain/entities/bookmark.dart';
 import '../../../bookmarks/presentation/controllers/bookmarks_controller.dart';
+import '../../domain/entities/daily_ayah.dart';
 import '../controllers/daily_ayah_controller.dart';
 import '../controllers/reflections_controller.dart';
 
-/// Daily reflection (mockup: daily_reflection_screen): the day's ayah with
-/// Listen/Save/Share actions, a personal reflection note field, and history.
 class DailyReflectionPage extends StatelessWidget {
   const DailyReflectionPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<DailyAyahController>();
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title:const Text('Daily Reflection'),
+        title: const Text('Daily reflection'),
+        centerTitle: false,
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        shape: const RoundedRectangleBorder(),
+        actions: [
+          IconButton(
+            tooltip: 'Reflection history',
+            onPressed: () => Get.toNamed(AppRoutes.reflectionsList),
+            icon: const Icon(LucideIcons.history),
+          ),
+        ],
       ),
-      body: GeometricBackground(
-        child: Stack(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (controller.error.value.isNotEmpty) {
+          return ErrorStateView(
+            message: controller.error.value,
+            onRetry: controller.fetchDailyAyah,
+          );
+        }
+        final ayah = controller.dailyAyah.value;
+        if (ayah == null) {
+          return const Center(child: Text('No daily ayah available'));
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
           children: [
-            // Lanterns glowing through the top, as in the mockup.
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 260,
-              child: ShaderMask(
-                blendMode: BlendMode.dstIn,
-                shaderCallback: (rect) => const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.white, Colors.transparent],
-                  stops: [0.2, 1],
-                ).createShader(rect),
-                child: Image.asset(
-                  AppAssets.lanternsBg,
-                  fit: BoxFit.cover,
-                  opacity: const AlwaysStoppedAnimation(0.35),
-                ),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer,
+                borderRadius: BorderRadius.circular(28),
               ),
-            ),
-            SafeArea(
-              bottom: false,
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (controller.error.value.isNotEmpty) {
-                  return Padding(
-                    padding: AppSpacing.screenPadding,
-                    child: ErrorStateView(
-                      message: controller.error.value,
-                      onRetry: controller.fetchDailyAyah,
-                    ),
-                  );
-                }
-                final ayah = controller.dailyAyah.value;
-                if (ayah == null) {
-                  return Center(
-                    child: Text(
-                      'No daily ayah available',
-                      style: AppTypography.bodyEn,
-                    ),
-                  );
-                }
-                return _DailyAyahContent(ayah: ayah);
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DailyAyahContent extends StatelessWidget {
-  const _DailyAyahContent({required this.ayah});
-  final dynamic ayah;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 40),
-      children: [
-        const SizedBox(height: AppSpacing.md),
-        Center(
-          child: Text(
-            ayah.reference,
-            style: AppTypography.headlineLgMobile,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Padding(
-          padding: AppSpacing.screenPadding,
-          child: GlassCard(
-            child: Column(
-              children: [
-                Text(
-                  ayah.arabic,
-                  textAlign: TextAlign.center,
-                  textDirection: TextDirection.rtl,
-                  style: AppTypography.displayAr.copyWith(fontSize: 40),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                // Verse divider ornament - matches Stitch design
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 1,
-                      color: AppColors.outlineVariant,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryContainer.withValues(alpha: 0.3),
-                        borderRadius: AppRadii.pillRadius,
-                      ),
-                      child: Text(
-                        ayah.reference,
-                        style: AppTypography.labelCaps.copyWith(
-                          color: AppColors.secondary,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Container(
-                      width: 32,
-                      height: 1,
-                      color: AppColors.outlineVariant,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  ayah.translation,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.bodyEn.copyWith(fontStyle: FontStyle.italic),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                // Circular action buttons with filled icons - matches Stitch
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _ReflectAction(icon: Icons.play_circle, label: 'Listen'),
-                    const SizedBox(width: AppSpacing.xl),
-                    _ReflectAction(
-                      icon: Icons.bookmark,
-                      label: 'Save',
-                      onTap: () {
-                        final bookmarks = Get.find<BookmarksController>();
-                        bookmarks.toggle(
-                          Bookmark(
-                            surahId: ayah.surahId,
-                            surahName: ayah.reference,
-                            ayah: ayah.ayahNumber,
-                            arabic: ayah.arabic,
-                            translation: ayah.translation,
-                            reference: ayah.reference,
-                            isFavorite: true,
-                            savedAtMs: DateTime.now().millisecondsSinceEpoch,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: AppSpacing.xl),
-                    _ReflectAction(
-                      icon: Icons.share,
-                      label: 'Share',
-                      onTap: () {
-                        SharePlus.instance.share(
-                          ShareParams(
-                            text: '${ayah.reference}\n${ayah.arabic}\n${ayah.translation}',
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Padding(
-          padding: AppSpacing.screenPadding,
-          child: _ReflectionEditor(ayah: ayah),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        // Previous Reflections Preview - matches Stitch design
-        Padding(
-          padding: AppSpacing.screenPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
-                  Text('Previous Reflections', style: AppTypography.bodyAr),
-                  TextButton(
-                    onPressed: () => Get.toNamed(AppRoutes.reflectionsList),
-                    child: Text(
-                      'View All',
-                      style: AppTypography.labelSemibold.copyWith(color: AppColors.primary),
+                  Icon(
+                    LucideIcons.sparkles,
+                    color: colors.onPrimaryContainer,
+                    size: 26,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    ayah.reference,
+                    style: TextStyle(
+                      color: colors.onPrimaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SelectableText(
+                    ayah.arabic,
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(
+                      fontFamily: 'Amiri',
+                      fontSize: 32,
+                      height: 1.9,
+                      color: colors.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Divider(
+                    color: colors.onPrimaryContainer.withValues(alpha: .2),
+                  ),
+                  const SizedBox(height: 16),
+                  SelectableText(
+                    ayah.translation,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      height: 1.8,
+                      color: colors.onPrimaryContainer,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
-              // Show up to the 3 most recent saved reflections; falls back to a
-              // hint when the user hasn't written any yet.
-              Obx(() {
-                final reflections =
-                    Get.find<ReflectionsController>().reflections;
-                if (reflections.isEmpty) {
-                  return Text(
-                    'Your saved reflections will appear here.',
-                    style: AppTypography.bodyEnSm,
-                    textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                Obx(() {
+                  final bookmarks = Get.find<BookmarksController>();
+                  final saved = bookmarks.bookmarks.any(
+                    (b) =>
+                        b.surahId == ayah.surahId && b.ayah == ayah.ayahNumber,
                   );
-                }
-                return Column(
-                  children: [
-                    for (final r in reflections.take(3))
-                      Padding(
-                        padding:
-                            const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _ReflectionPreviewCard(
-                          reference: r.reference,
-                          note: r.note,
-                        ),
+                  return FilledButton.tonalIcon(
+                    icon: Icon(
+                      saved ? LucideIcons.check : LucideIcons.bookmark,
+                    ),
+                    label: Text(saved ? 'Saved' : 'Save ayah'),
+                    onPressed: () => bookmarks.toggle(
+                      Bookmark(
+                        surahId: ayah.surahId,
+                        surahName: ayah.reference,
+                        ayah: ayah.ayahNumber,
+                        arabic: ayah.arabic,
+                        translation: ayah.translation,
+                        reference: ayah.reference,
+                        isFavorite: true,
+                        savedAtMs: DateTime.now().millisecondsSinceEpoch,
                       ),
-                  ],
-                );
-              }),
-              const SizedBox(height: AppSpacing.xs),
-              // Card entry point for adding a standalone reflection.
-              _AddReflectionCard(),
-            ],
-          ),
-        ),
-      ],
+                    ),
+                  );
+                }),
+                OutlinedButton.icon(
+                  icon: const Icon(LucideIcons.share2),
+                  label: const Text('Share'),
+                  onPressed: () {
+                    final box = context.findRenderObject() as RenderBox?;
+                    SharePlus.instance.share(
+                      ShareParams(
+                        text:
+                            '${ayah.reference}\n${ayah.arabic}\n${ayah.translation}',
+                        sharePositionOrigin: box == null
+                            ? null
+                            : box.localToGlobal(Offset.zero) & box.size,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _ReflectionEditor(key: ValueKey(ayah.reference), ayah: ayah),
+            const SizedBox(height: 20),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(LucideIcons.notebookPen, color: colors.primary),
+              title: const Text('Your reflections'),
+              trailing: const Icon(LucideIcons.chevronRight),
+              onTap: () => Get.toNamed(AppRoutes.reflectionsList),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
 
-/// Editable personal note for the day's ayah, persisted locally so it survives
-/// app restarts. Keyed by the ayah reference (one note per verse).
 class _ReflectionEditor extends StatefulWidget {
-  const _ReflectionEditor({required this.ayah});
-  final dynamic ayah;
+  const _ReflectionEditor({super.key, required this.ayah});
+  final DailyAyah ayah;
 
   @override
   State<_ReflectionEditor> createState() => _ReflectionEditorState();
@@ -307,7 +213,9 @@ class _ReflectionEditorState extends State<_ReflectionEditor> {
     if (mounted) FocusScope.of(context).unfocus();
     Get.snackbar(
       'Saved',
-      text.isEmpty ? 'Your reflection was cleared.' : 'Your reflection was saved.',
+      text.isEmpty
+          ? 'Your reflection was cleared.'
+          : 'Your reflection was saved.',
       snackPosition: SnackPosition.BOTTOM,
       margin: const EdgeInsets.all(AppSpacing.md),
     );
@@ -315,26 +223,34 @@ class _ReflectionEditorState extends State<_ReflectionEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.edit_note_rounded, color: AppColors.tertiary),
+              Icon(LucideIcons.notebookPen, color: colors.primary),
               const SizedBox(width: AppSpacing.xs),
-              Text('MY REFLECTION',
-                  style: AppTypography.labelCaps
-                      .copyWith(color: AppColors.onSurface)),
+              Text(
+                'MY REFLECTION',
+                style: AppTypography.labelCaps.copyWith(
+                  color: colors.onSurface,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLow,
+              color: colors.surface,
               borderRadius: AppRadii.cardRadius,
-              boxShadow: AppShadows.inset,
             ),
             child: TextField(
               controller: _textController,
@@ -350,14 +266,18 @@ class _ReflectionEditorState extends State<_ReflectionEditor> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                  onPressed: _clear,
-                  child: Text('Clear',
-                      style: AppTypography.labelSemibold.copyWith(
-                          color: AppColors.onSurfaceVariant))),
+                onPressed: _clear,
+                child: Text(
+                  'Clear',
+                  style: AppTypography.labelSemibold.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ),
               const SizedBox(width: AppSpacing.sm),
               GlowPrimaryButton(
                 label: 'Save Note',
-                trailingIcon: Icons.check_circle_outline,
+                trailingIcon: LucideIcons.circleCheck,
                 expand: false,
                 height: 44,
                 onPressed: _save,
@@ -365,104 +285,6 @@ class _ReflectionEditorState extends State<_ReflectionEditor> {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ReflectAction extends StatelessWidget {
-  const _ReflectAction({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        PressableScale(
-          onTap: onTap,
-          child: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainerLowest,
-              shape: BoxShape.circle,
-              boxShadow: AppShadows.neumorphic,
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 28, fill: 1.0),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(label, style: AppTypography.bodyEnSm),
-      ],
-    );
-  }
-}
-
-class _ReflectionPreviewCard extends StatelessWidget {
-  const _ReflectionPreviewCard({required this.reference, required this.note});
-  final String reference;
-  final String note;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.auto_awesome_rounded,
-                  color: AppColors.tertiary, size: 16),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Text(
-                  reference,
-                  style: AppTypography.labelSemibold.copyWith(
-                    color: AppColors.primary,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            note,
-            style: AppTypography.bodyEnSm
-                .copyWith(color: AppColors.onSurfaceVariant),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AddReflectionCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return PressableScale(
-      onTap: () => Get.toNamed(AppRoutes.addReflection),
-      child: GlassCard(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary, size: 22),
-            const SizedBox(width: AppSpacing.sm),
-            Text('Add Reflection',
-                style: AppTypography.labelSemibold.copyWith(color: AppColors.primary)),
-          ],
-        ),
       ),
     );
   }

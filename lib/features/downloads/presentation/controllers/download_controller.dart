@@ -104,8 +104,10 @@ class DownloadController extends GetxController {
       await _persist();
     } on DioException catch (e) {
       if (!CancelToken.isCancel(e)) {
-        Get.snackbar('Download failed',
-            'Could not download ${track.surahName}. Check your connection.');
+        Get.snackbar(
+          'Download failed',
+          'Could not download ${track.surahName}. Check your connection.',
+        );
       }
     } catch (_) {
       Get.snackbar('Download failed', 'Could not save ${track.surahName}.');
@@ -141,7 +143,7 @@ class DownloadController extends GetxController {
   }
 
   Future<void> _persist() => _storage.writeJsonList(
-        StorageKeys.downloads,
-        items.values.map((e) => e.toJson()).toList(),
-      );
+    StorageKeys.downloads,
+    items.values.map((e) => e.toJson()).toList(),
+  );
 }

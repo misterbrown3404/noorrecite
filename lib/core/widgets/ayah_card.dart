@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -43,7 +44,7 @@ class AyahCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (surahName != null || ayahNumber != null) _header(),
+          if (surahName != null || ayahNumber != null) _header(context),
           if (surahName != null || ayahNumber != null)
             const SizedBox(height: AppSpacing.lg),
           // Arabic ayah — centered, RTL, generous line height for Tashkeel.
@@ -51,7 +52,9 @@ class AyahCard extends StatelessWidget {
             arabic,
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
-            style: AppTypography.bodyAr,
+            style: AppTypography.bodyAr.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           if (translation != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -61,20 +64,20 @@ class AyahCard extends StatelessWidget {
               // ~28% smaller than the 24px Arabic, per DESIGN.md hierarchy.
               style: AppTypography.bodyEnSm.copyWith(
                 fontStyle: FontStyle.italic,
-                color: AppColors.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
           if (note != null) ...[
             const SizedBox(height: AppSpacing.lg),
-            _noteBlock(note!),
+            _noteBlock(context, note!),
           ],
         ],
       ),
     );
   }
 
-  Widget _header() {
+  Widget _header(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -94,11 +97,17 @@ class AyahCard extends StatelessWidget {
               if (surahName != null)
                 Text(
                   surahName!.toUpperCase(),
-                  style: AppTypography.labelCaps
-                      .copyWith(color: AppColors.primary),
+                  style: AppTypography.labelCaps.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               if (ayahNumber != null)
-                Text('Verse $ayahNumber', style: AppTypography.bodyEnSm),
+                Text(
+                  'Verse $ayahNumber',
+                  style: AppTypography.bodyEnSm.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
             ],
           ),
         ),
@@ -107,12 +116,12 @@ class AyahCard extends StatelessWidget {
     );
   }
 
-  Widget _noteBlock(String text) {
+  Widget _noteBlock(BuildContext context, String text) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: AppRadii.cardRadius,
       ),
       child: Column(
@@ -120,16 +129,27 @@ class AyahCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.edit_note_rounded,
-                  size: 16, color: AppColors.tertiary),
+              const Icon(
+                LucideIcons.notebookPen,
+                size: 16,
+                color: AppColors.tertiary,
+              ),
               const SizedBox(width: AppSpacing.xs),
-              Text('My Notes',
-                  style: AppTypography.labelCaps
-                      .copyWith(color: AppColors.tertiary)),
+              Text(
+                'My Notes',
+                style: AppTypography.labelCaps.copyWith(
+                  color: AppColors.tertiary,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(text, style: AppTypography.bodyEnSm),
+          Text(
+            text,
+            style: AppTypography.bodyEnSm.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );

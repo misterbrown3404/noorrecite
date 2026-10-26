@@ -1,3 +1,5 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../playlists/presentation/playlists_sheet.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,7 +11,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/duration_format.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../downloads/presentation/controllers/download_controller.dart';
-import '../../../reciters/presentation/controllers/reciter_controller.dart';
+import 'audio_picker_sheets.dart';
+import 'sleep_timer_sheet.dart';
 import '../../domain/entities/audio_track.dart';
 import '../controllers/audio_controller.dart';
 
@@ -25,6 +28,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
   late final AnimationController _waveformController;
   late final AudioController _audio;
   late final DownloadController _downloads;
+  late final Worker _playingWorker;
+  late final Worker _bufferingWorker;
 
   static const _waveformBars = [
     _WaveBarConfig(delay: 0.1, minHeight: 12, maxHeight: 32),
@@ -56,77 +61,168 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
     _waveformController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
-    )..repeat();
+    );
 
-    ever(_audio.isPlaying, (playing) {
-      if (!mounted) return;
-      if (playing) {
-        _waveformController.repeat();
-      } else {
-        _waveformController.stop();
-      }
+    _bufferingWorker = ever(_audio.isBuffering, (_) {
+      if (mounted) _syncMotion();
     });
+    _playingWorker = ever(_audio.isPlaying, (playing) {
+      if (!mounted) return;
+      _syncMotion();
+    });
+  }
+
+  void _syncMotion() {
+    if (_audio.isPlaying.value &&
+        !_audio.isBuffering.value &&
+        !MediaQuery.disableAnimationsOf(context)) {
+      _waveformController.repeat();
+    } else {
+      _waveformController.stop();
+      _waveformController.value = 0;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncMotion();
   }
 
   @override
   void dispose() {
+    _playingWorker.dispose();
+    _bufferingWorker.dispose();
     _waveformController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final actionStyle = IconButton.styleFrom(
+      foregroundColor: colors.primary,
+      backgroundColor: colors.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Now Playing'),
+        title: const Text(
+          'Recitation',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -.3,
+          ),
+        ),
+        centerTitle: false,
+        titleSpacing: 8,
+        leadingWidth: 56,
+        leading: Navigator.of(context).canPop()
+            ? Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Center(
+                  child: IconButton(
+                    tooltip: 'Back',
+                    style: actionStyle,
+                    icon: const Icon(LucideIcons.chevronDown),
+                    onPressed: () => Navigator.maybePop(context),
+                  ),
+                ),
+              )
+            : null,
+        toolbarHeight: 76,
+        actionsPadding: const EdgeInsets.only(right: 8),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        shape: const RoundedRectangleBorder(),
         actions: [
-          HeaderIconAction(
-            icon: Icons.mic_rounded,
-            onTap: () => _showReciterSheet(),
+          IconButton(
+            style: actionStyle,
+            tooltip: 'Change reciter',
+            icon: const Icon(LucideIcons.speech),
+            onPressed: _showReciterSheet,
           ),
           Obx(() {
             final track = _audio.currentTrack;
-            if (track == null) {
-              return const SizedBox(width: 44); // keep header height stable
-            }
-
-            final downloading = _downloads.isDownloading(track.id);
-            if (downloading) {
-              final p = _downloads.progress[track.id] ?? 0.0;
-              return SizedBox(
-                width: 44,
-                height: 44,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 26,
-                      height: 26,
-                      child: CircularProgressIndicator(
-                        value: p > 0
-                            ? p
-                            : null, // spins until first progress event
-                        strokeWidth: 2.5,
-                        color: AppColors.primary,
-                        backgroundColor: AppColors.surfaceContainerHigh,
+            final downloading =
+                track != null && _downloads.isDownloading(track.id);
+            final downloaded =
+                track != null && _downloads.isDownloaded(track.id);
+            return IconButton(
+              style: actionStyle,
+              tooltip: downloading
+                  ? 'Cancel download'
+                  : downloaded
+                  ? 'Remove download'
+                  : 'Download',
+              onPressed: track == null ? null : () => _onDownloadTap(track),
+              icon: downloading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            value: (_downloads.progress[track.id] ?? 0) > 0
+                                ? _downloads.progress[track.id]
+                                : null,
+                            strokeWidth: 2,
+                          ),
+                          const Icon(LucideIcons.x, size: 14),
+                        ],
                       ),
+                    )
+                  : Icon(
+                      downloaded ? LucideIcons.download : LucideIcons.download,
                     ),
-                    PressableScale(
-                      onTap: () => _onDownloadTap(track),
-                      child: const Icon(Icons.close_rounded, size: 16),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return HeaderIconAction(
-              icon: _downloads.isDownloaded(track.id)
-                  ? Icons.download_done_rounded
-                  : Icons.download_outlined,
-              onTap: () => _onDownloadTap(track),
             );
           }),
+          PopupMenuButton<String>(
+            tooltip: 'Playback options',
+            icon: const Icon(LucideIcons.ellipsis),
+            onSelected: (action) {
+              switch (action) {
+                case 'playlists':
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    showDragHandle: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(32),
+                      ),
+                    ),
+                    builder: (_) => const PlaylistsSheet(),
+                  );
+                case 'sleep':
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    showDragHandle: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(32),
+                      ),
+                    ),
+                    builder: (_) => SleepTimerSheet(audio: _audio),
+                  );
+              }
+            },
+            itemBuilder: (_) {
+              return [
+                const PopupMenuItem(
+                  value: 'playlists',
+                  child: Text('Playlists'),
+                ),
+                const PopupMenuItem(value: 'sleep', child: Text('Sleep timer')),
+              ];
+            },
+          ),
         ],
       ),
       body: GeometricBackground(
@@ -134,10 +230,10 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
           bottom: true,
           child: Stack(
             children: [
-              const ParticleField(particleCount: 20),
               Padding(
                 padding: AppSpacing.screenPadding,
-                child: Column(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 150),
                   children: [
                     const SizedBox(height: AppSpacing.lg),
                     Obx(() {
@@ -159,7 +255,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                         ),
                       );
                     }),
-                    Expanded(child: Center(child: _artwork())),
+                    Center(child: _artwork()),
                     const SizedBox(height: AppSpacing.lg),
                     _waveform(),
                     const SizedBox(height: AppSpacing.lg),
@@ -168,6 +264,16 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                     _transport(),
                     const SizedBox(height: AppSpacing.lg),
                     _actionDrawer(),
+                    Obx(
+                      () => _audio.sleepMinutes.value == 0
+                          ? const SizedBox.shrink()
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                'Sleep timer · ${_audio.sleepMinutes.value} min remaining',
+                              ),
+                            ),
+                    ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
                 ),
@@ -184,7 +290,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _QueueSheet(),
+      builder: (_) => AudioQueueSheet(),
     );
   }
 
@@ -195,8 +301,9 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) =>
-          _ReciterSheet(currentSurahNumber: _audio.currentTrack?.surahNumber),
+      builder: (_) => ReciterPickerSheet(
+        currentSurahNumber: _audio.currentTrack?.surahNumber,
+      ),
     );
   }
 
@@ -231,100 +338,103 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
   Widget _artwork() {
     return Obx(() {
       final track = _audio.currentTrack;
-      return ParallaxWidget(
-        maxRotationX: 6,
-        maxRotationY: 6,
-        maxTranslationX: 8,
-        maxTranslationY: 8,
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: AppRadii.cardRadius,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 32,
-                  offset: const Offset(0, 16),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-            ),
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: AppRadii.cardRadius,
-                  child: Image.asset(
-                    AppAssets.quranOnVelvet,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
+      return AnimatedBuilder(
+        animation: _waveformController,
+        builder: (_, child) => Transform.scale(
+          scale: 1 + .008 * math.sin(_waveformController.value * 2 * math.pi),
+          child: child,
+        ),
+        child: RepaintBoundary(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: AppRadii.cardRadius,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    blurRadius: 32,
+                    offset: const Offset(0, 16),
                   ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              child: Stack(
+                children: [
+                  ClipRRect(
                     borderRadius: AppRadii.cardRadius,
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.4),
-                      ],
+                    child: Image.asset(
+                      AppAssets.quranOnVelvet,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
                     ),
                   ),
-                ),
-                if (track != null)
-                  Positioned(
-                    left: AppSpacing.lg,
-                    right: AppSpacing
-                        .lg, // bound the width so it can't overflow the card
-                    bottom: AppSpacing.lg,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          quran.getSurahName(track.surahNumber),
-                          style: AppTypography.headlineLgMobile.copyWith(
-                            color: Colors.white,
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: AppRadii.cardRadius,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.4),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (track != null)
+                    Positioned(
+                      left: AppSpacing.lg,
+                      right: AppSpacing
+                          .lg, // bound the width so it can't overflow the card
+                      bottom: AppSpacing.lg,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            quran.getSurahName(track.surahNumber),
+                            style: AppTypography.headlineLgMobile.copyWith(
+                              color: Colors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: AppColors.goldGradient,
-                              borderRadius: AppRadii.pillRadius,
-                            ),
-                            child: Text(
-                              track.reciterName.toUpperCase(),
-                              style: AppTypography.labelCaps.copyWith(
-                                color: Colors.white,
-                                letterSpacing: 1.5,
+                          const SizedBox(height: AppSpacing.xs),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: 6,
                               ),
-                              maxLines:
-                                  1, // FittedBox handles overflow now, no ellipsis needed
+                              decoration: BoxDecoration(
+                                gradient: AppColors.goldGradient,
+                                borderRadius: AppRadii.pillRadius,
+                              ),
+                              child: Text(
+                                track.reciterName.toUpperCase(),
+                                style: AppTypography.labelCaps.copyWith(
+                                  color: Colors.white,
+                                  letterSpacing: 1.5,
+                                ),
+                                maxLines:
+                                    1, // FittedBox handles overflow now, no ellipsis needed
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -334,7 +444,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
 
   Widget _waveform() {
     return Obx(() {
-      final playing = _audio.isPlaying.value;
+      final playing =
+          _audio.isPlaying.value && !MediaQuery.disableAnimationsOf(context);
       return SizedBox(
         height: 64,
         child: AnimatedBuilder(
@@ -359,120 +470,27 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
 
   Widget _scrubber() {
     return Obx(() {
-      final pos = _audio.position.value;
-      final dur = _audio.duration.value;
-      final progress = dur.inMilliseconds > 0
-          ? pos.inMilliseconds / dur.inMilliseconds
-          : 0.0;
-
+      final total = _audio.duration.value.inMilliseconds;
+      final position = _audio.position.value.inMilliseconds;
       return Column(
         children: [
-          SizedBox(
-            height: 24,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final trackWidth = constraints.maxWidth;
-                return Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FractionallySizedBox(
-                        widthFactor: progress.clamp(0.0, 1.0),
-                        child: Container(
-                          height: 6,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(3),
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.tertiary,
-                                AppColors.tertiaryFixedDim,
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.tertiary.withValues(
-                                  alpha: 0.5,
-                                ),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: (progress.clamp(0.0, 1.0) * trackWidth - 12).clamp(
-                        0.0,
-                        trackWidth - 24,
-                      ),
-                      top: 0,
-                      child: GestureDetector(
-                        onHorizontalDragUpdate: (d) {
-                          if (dur.inMilliseconds == 0) return;
-                          final newProgress =
-                              ((progress + d.delta.dx / trackWidth).clamp(
-                                0.0,
-                                1.0,
-                              ));
-                          _audio.seek(
-                            Duration(
-                              milliseconds: (newProgress * dur.inMilliseconds)
-                                  .round(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.tertiary,
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.tertiary.withValues(
-                                  alpha: 0.5,
-                                ),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+          Slider(
+            value: total > 0 ? (position / total).clamp(0.0, 1.0) : 0,
+            onChanged: total > 0
+                ? (value) => _audio.seek(
+                    Duration(milliseconds: (value * total).round()),
+                  )
+                : null,
+            semanticFormatterCallback: (value) => DurationFormat.clock(
+              Duration(milliseconds: (value * total).round()),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  DurationFormat.clock(pos),
-                  style: AppTypography.labelSemibold,
-                ),
-                Text(
-                  DurationFormat.clock(dur),
-                  style: AppTypography.labelSemibold,
-                ),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(DurationFormat.clock(_audio.position.value)),
+              Text(DurationFormat.clock(_audio.duration.value)),
+            ],
           ),
         ],
       );
@@ -492,7 +510,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
           PressableScale(
             onTap: _audio.toggleShuffle,
             child: Icon(
-              Icons.shuffle_rounded,
+              LucideIcons.shuffle,
               color: shuffle ? AppColors.primary : AppColors.onSurfaceVariant,
               size: 28,
             ),
@@ -500,7 +518,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
           PressableScale(
             onTap: _audio.previous,
             child: NeuIconButton(
-              icon: Icons.skip_previous_rounded,
+              icon: LucideIcons.skipBack,
               size: 56,
               onPressed: _audio.previous,
             ),
@@ -532,7 +550,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                       ),
                     )
                   : Icon(
-                      playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      playing ? LucideIcons.pause : LucideIcons.play,
                       color: Colors.white,
                       size: playing ? 40 : 48,
                     ),
@@ -541,7 +559,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
           PressableScale(
             onTap: _audio.next,
             child: NeuIconButton(
-              icon: Icons.skip_next_rounded,
+              icon: LucideIcons.skipForward,
               size: 56,
               onPressed: _audio.next,
             ),
@@ -550,8 +568,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
             onTap: _audio.cycleRepeatMode,
             child: Icon(
               repeat == AudioRepeatMode.one
-                  ? Icons.repeat_one_rounded
-                  : Icons.repeat_rounded,
+                  ? LucideIcons.repeat1
+                  : LucideIcons.repeat,
               color: repeat != AudioRepeatMode.off
                   ? AppColors.primary
                   : AppColors.onSurfaceVariant,
@@ -567,8 +585,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
     return Obx(() {
       final speed = _audio.speed.value;
       final actions = [
-        (Icons.speed_rounded, '${speed}X', _audio.cycleSpeed),
-        (Icons.queue_music_rounded, 'QUEUE', _showQueueSheet),
+        (LucideIcons.gauge, '${speed}X', _audio.cycleSpeed),
+        (LucideIcons.listMusic, 'QUEUE', _showQueueSheet),
       ];
       return Container(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -608,212 +626,6 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
         ),
       );
     });
-  }
-}
-
-class _QueueSheet extends StatelessWidget {
-  const _QueueSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final audio = Get.find<AudioController>();
-    return Material(
-      color: AppColors.surface,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.6,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  Text('QUEUE', style: AppTypography.labelSemibold),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: Obx(() {
-                final queue = audio.queue;
-                if (queue.isEmpty) {
-                  return const Center(child: Text('No surahs in queue'));
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  itemCount: queue.length,
-                  itemBuilder: (context, index) {
-                    final track = queue[index];
-                    final isCurrent = index == audio.currentIndex.value;
-                    return ListTile(
-                      leading: Icon(
-                        isCurrent
-                            ? Icons.play_arrow_rounded
-                            : Icons.circle_outlined,
-                        color: isCurrent
-                            ? AppColors.primary
-                            : AppColors.onSurfaceVariant,
-                        size: isCurrent ? 24 : 16,
-                      ),
-                      title: Text(
-                        quran.getSurahName(track.surahNumber),
-                        style: isCurrent
-                            ? AppTypography.labelSemibold.copyWith(
-                                color: AppColors.primary,
-                              )
-                            : AppTypography.labelSemibold,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        'Surah ${track.surahName} • ${track.reciterName}',
-                        style: AppTypography.bodyEnSm.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      onTap: () {
-                        audio.playAt(index);
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Reciter picker sheet: lists every reciter (scrollable), tapping one starts
-/// playback of the current surah with that reciter.
-class _ReciterSheet extends StatelessWidget {
-  const _ReciterSheet({required this.currentSurahNumber});
-
-  /// The surah currently loaded in the player, so switching reciters keeps
-  /// listening to the same surah rather than restarting from Surah 1.
-  final int? currentSurahNumber;
-
-  @override
-  Widget build(BuildContext context) {
-    final reciterController = Get.find<ReciterController>();
-    final audio = Get.find<AudioController>();
-
-    return Material(
-      color: AppColors.surface,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.75,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  Text('RECITERS', style: AppTypography.labelSemibold),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: Obx(() {
-                if (reciterController.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (reciterController.error.value.isNotEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: ErrorStateView(
-                        message: reciterController.error.value,
-                        onRetry: reciterController.fetchReciters,
-                      ),
-                    ),
-                  );
-                }
-                final reciters = reciterController.filteredReciters;
-                if (reciters.isEmpty) {
-                  return const Center(child: Text('No reciters available'));
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                  itemCount: reciters.length,
-                  itemBuilder: (context, index) {
-                    final reciter = reciters[index];
-                    final isCurrent =
-                        audio.currentTrack?.reciterName == reciter.name;
-                    final imageAsset = AppAssets.reciterImage(reciter.id);
-
-                    return ListTile(
-                      leading: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: AppColors.surfaceContainerHigh,
-                        backgroundImage: imageAsset != null
-                            ? AssetImage(imageAsset)
-                            : null,
-                        child: imageAsset == null
-                            ? const Icon(
-                                Icons.person_rounded,
-                                color: AppColors.outline,
-                              )
-                            : null,
-                      ),
-                      title: Text(
-                        reciter.name,
-                        style: isCurrent
-                            ? AppTypography.labelSemibold.copyWith(
-                                color: AppColors.primary,
-                              )
-                            : AppTypography.labelSemibold,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        reciter.primaryMoshaf?.name ?? '',
-                        style: AppTypography.bodyEnSm.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: isCurrent
-                          ? const Icon(
-                              Icons.play_arrow_rounded,
-                              color: AppColors.primary,
-                            )
-                          : null,
-                      onTap: () {
-                        audio.playReciter(
-                          reciter,
-                          startSurahNumber: currentSurahNumber ?? 1,
-                        );
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

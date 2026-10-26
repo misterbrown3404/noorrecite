@@ -35,7 +35,9 @@ class GlowPrimaryButton extends StatelessWidget {
         Flexible(
           child: Text(
             label,
-            style: AppTypography.labelSemibold.copyWith(color: AppColors.onPrimary),
+            style: AppTypography.labelSemibold.copyWith(
+              color: AppColors.onPrimary,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

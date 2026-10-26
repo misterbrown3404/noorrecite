@@ -34,28 +34,28 @@ class DownloadItem extends Equatable {
   String get id => '$reciterId-$moshafName-$surahNumber';
 
   Map<String, dynamic> toJson() => {
-        'surahNumber': surahNumber,
-        'surahName': surahName,
-        'reciterId': reciterId,
-        'reciterName': reciterName,
-        'moshafName': moshafName,
-        'url': url,
-        'filePath': filePath,
-        'sizeBytes': sizeBytes,
-        'savedAtMs': savedAtMs,
-      };
+    'surahNumber': surahNumber,
+    'surahName': surahName,
+    'reciterId': reciterId,
+    'reciterName': reciterName,
+    'moshafName': moshafName,
+    'url': url,
+    'filePath': filePath,
+    'sizeBytes': sizeBytes,
+    'savedAtMs': savedAtMs,
+  };
 
   factory DownloadItem.fromJson(Map<String, dynamic> json) => DownloadItem(
-        surahNumber: json['surahNumber'] as int,
-        surahName: json['surahName'] as String,
-        reciterId: json['reciterId'] as int,
-        reciterName: json['reciterName'] as String,
-        moshafName: json['moshafName'] as String,
-        url: json['url'] as String,
-        filePath: json['filePath'] as String,
-        sizeBytes: (json['sizeBytes'] as num).toInt(),
-        savedAtMs: (json['savedAtMs'] as num).toInt(),
-      );
+    surahNumber: json['surahNumber'] as int,
+    surahName: json['surahName'] as String,
+    reciterId: json['reciterId'] as int,
+    reciterName: json['reciterName'] as String,
+    moshafName: json['moshafName'] as String,
+    url: json['url'] as String,
+    filePath: json['filePath'] as String,
+    sizeBytes: (json['sizeBytes'] as num).toInt(),
+    savedAtMs: (json['savedAtMs'] as num).toInt(),
+  );
 
   @override
   List<Object> get props => [id];

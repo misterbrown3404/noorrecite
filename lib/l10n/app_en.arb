@@ -1,6 +1,5 @@
 {
   "@@locale": "en",
-
   "appTitle": "QariVerse",
   "greeting": "Assalamu Alaikum,",
   "nextPrayer": "NEXT PRAYER",
@@ -10,7 +9,6 @@
   "dailyAyah": "DAILY AYAH",
   "popularReciters": "Popular Reciters",
   "viewAll": "VIEW ALL",
-
   "quranTitle": "Quran",
   "allSurahs": "All Surahs",
   "juz": "Juz",
@@ -20,31 +18,80 @@
   "searchHint": "Search Surah, Juz, or Keyword...",
   "lastRead": "LAST READ",
   "ayahLabel": "Ayah {n}",
-  "@ayahLabel": { "placeholders": { "n": { "type": "int" } } },
+  "@ayahLabel": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "percentCompleted": "{pct}% Completed",
-  "@percentCompleted": { "placeholders": { "pct": { "type": "String" } } },
+  "@percentCompleted": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "pagesRange": "Pages {start}–{end}",
-  "@pagesRange": { "placeholders": { "start": { "type": "int" }, "end": { "type": "int" } } },
+  "@pagesRange": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
   "pagesRangeLabel": "PAGES {start}–{end}",
-  "@pagesRangeLabel": { "placeholders": { "start": { "type": "int" }, "end": { "type": "int" } } },
-
+  "@pagesRangeLabel": {
+    "placeholders": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
   "nowPlaying": "Now Playing",
   "removeDownload": "Remove download",
   "deleteOfflineCopy": "Delete the offline copy of {surahName}?",
-  "@deleteOfflineCopy": { "placeholders": { "surahName": { "type": "String" } } },
+  "@deleteOfflineCopy": {
+    "placeholders": {
+      "surahName": {
+        "type": "String"
+      }
+    }
+  },
   "cancel": "Cancel",
   "delete": "Delete",
   "queue": "QUEUE",
   "noSurahsInQueue": "No surahs in queue",
   "surahSubtitle": "Surah {surahName} · {reciterName}",
-  "@surahSubtitle": { "placeholders": { "surahName": { "type": "String" }, "reciterName": { "type": "String" } } },
-
+  "@surahSubtitle": {
+    "placeholders": {
+      "surahName": {
+        "type": "String"
+      },
+      "reciterName": {
+        "type": "String"
+      }
+    }
+  },
   "downloadsTitle": "Downloads",
   "manageOfflineLibrary": "Manage your offline Quranic library",
   "offlineMode": "OFFLINE MODE",
   "storageUsage": "STORAGE USAGE",
   "surahCount": "{count, plural, =1{surah} other{surahs}}",
-  "@surahCount": { "placeholders": { "count": { "type": "int" } } },
+  "@surahCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clearAll": "CLEAR ALL",
   "downloadedByReciter": "DOWNLOADED BY RECITER",
   "clearAllDownloads": "Clear all downloads",
@@ -52,25 +99,40 @@
   "clearAllButton": "Clear all",
   "noDownloadsYet": "No downloads yet",
   "noDownloadsSubtitle": "Tap the download icon on the player to save a surah for offline listening.",
-
   "bookmarksTitle": "Bookmarks",
   "myBookmarks": "My Bookmarks",
   "savedAyahs": "{count, plural, =1{{count} Saved Ayah} other{{count} Saved Ayahs}}",
-  "@savedAyahs": { "placeholders": { "count": { "type": "int" } } },
+  "@savedAyahs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "lastReadBadge": "Last Read",
   "noSurahOpenedYet": "No surah opened yet",
   "openSurahFromQuranTab": "Open a surah from the Quran tab",
   "ayahAndPages": "Ayah {ayah} • Pages {start}–{end}",
-  "@ayahAndPages": { "placeholders": { "ayah": { "type": "int" }, "start": { "type": "int" }, "end": { "type": "int" } } },
+  "@ayahAndPages": {
+    "placeholders": {
+      "ayah": {
+        "type": "int"
+      },
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      }
+    }
+  },
   "continueReading": "Continue Reading",
   "noBookmarksYet": "No Bookmarks Yet",
   "noBookmarksSubtitle": "Start saving your favorite Ayahs to build your personal spiritual treasury.",
   "exploreQuran": "Explore Quran",
-
   "recitersTitle": "Reciters",
   "featuredReciters": "Featured Reciters",
   "searchRecitersHint": "Search by name or style...",
-
   "settingsTitle": "Settings",
   "appearance": "APPEARANCE",
   "theme": "Theme",
@@ -102,7 +164,6 @@
   "clearAllDataButton": "Clear All",
   "done": "Done",
   "allDataCleared": "All data cleared. Restart the app.",
-
   "dailyReflectionLabel": "DAILY REFLECTION",
   "listen": "Listen",
   "save": "Save",
@@ -117,7 +178,6 @@
   "saved": "Saved",
   "reflectionCleared": "Your reflection was cleared.",
   "reflectionSaved": "Your reflection was saved.",
-
   "selectAyah": "SELECT AYAH",
   "selectAyahDefault": "Select an Ayah",
   "yourReflection": "YOUR REFLECTION",
@@ -126,21 +186,19 @@
   "empty": "Empty",
   "pleaseWriteReflection": "Please write your reflection first.",
   "reflectionHasSaved": "Your reflection has been saved.",
-
   "allReflections": "ALL REFLECTIONS",
   "yourReflections": "Your Reflections",
   "noMoreReflections": "No more reflections yet",
   "noMoreReflectionsSubtitle": "Tap \"Add Reflection\" to save your thoughts on any ayah.",
   "addFirstReflection": "Add Your First Reflection",
-
   "onboardingSkip": "Skip",
   "onboardingNext": "Next",
   "onboardingGetStarted": "GET STARTED",
   "onboardingBack": "Back",
-  "onboardingSlide1Title": "Discover Quran Recitation",
-  "onboardingSlide1Body": "Experience the divine word through the world's most beautiful voices in a sanctuary designed for your soul.",
-  "onboardingSlide2Title": "Listen Anywhere",
-  "onboardingSlide2Body": "Download your favorite recitations and listen offline, even in the most remote sanctuaries.",
-  "onboardingSlide3Title": "Learn and Reflect",
-  "onboardingSlide3Body": "Dive deeper into the divine wisdom with word-by-word Tafsir and organized bookmarks for your spiritual journey."
+  "onboardingSlide1Title": "Make room for Quran",
+  "onboardingSlide1Body": "Read at your pace. Save the verses you want to return to.",
+  "onboardingSlide2Title": "Find your favorite voice",
+  "onboardingSlide2Body": "Listen to your favorite reciters and download surahs for offline moments.",
+  "onboardingSlide3Title": "Bring faith into your day",
+  "onboardingSlide3Body": "Keep close to prayer times, daily ayahs, and morning and evening Azkar."
 }

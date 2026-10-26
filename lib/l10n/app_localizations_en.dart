@@ -396,23 +396,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingBack => 'Back';
 
   @override
-  String get onboardingSlide1Title => 'Discover Quran Recitation';
+  String get onboardingSlide1Title => 'Make room for Quran';
 
   @override
   String get onboardingSlide1Body =>
-      'Experience the divine word through the world\'s most beautiful voices in a sanctuary designed for your soul.';
+      'Read at your pace. Save the verses you want to return to.';
 
   @override
-  String get onboardingSlide2Title => 'Listen Anywhere';
+  String get onboardingSlide2Title => 'Find your favorite voice';
 
   @override
   String get onboardingSlide2Body =>
-      'Download your favorite recitations and listen offline, even in the most remote sanctuaries.';
+      'Listen to your favorite reciters and download surahs for offline moments.';
 
   @override
-  String get onboardingSlide3Title => 'Learn and Reflect';
+  String get onboardingSlide3Title => 'Bring faith into your day';
 
   @override
   String get onboardingSlide3Body =>
-      'Dive deeper into the divine wisdom with word-by-word Tafsir and organized bookmarks for your spiritual journey.';
+      'Keep close to prayer times, daily ayahs, and morning and evening Azkar.';
 }

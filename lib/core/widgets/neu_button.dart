@@ -50,8 +50,10 @@ class NeuInsetField extends StatelessWidget {
   const NeuInsetField({
     super.key,
     required this.child,
-    this.padding =
-        const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: AppSpacing.lg,
+      vertical: 14,
+    ),
     this.borderRadius = AppRadii.controlRadius,
   });
 
@@ -67,7 +69,9 @@ class NeuInsetField extends StatelessWidget {
         color: AppColors.surfaceContainerLow,
         borderRadius: borderRadius,
         boxShadow: AppShadows.inset,
-        border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: AppColors.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: child,
     );

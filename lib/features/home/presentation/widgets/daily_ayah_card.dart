@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
@@ -88,7 +89,7 @@ class DailyAyahCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _CircleGlyph(
-                    icon: Icons.share_outlined,
+                    icon: LucideIcons.share2,
                     onTap: () => SharePlus.instance.share(
                       ShareParams(
                         text:
@@ -189,7 +190,7 @@ class _DailyAyahFavoriteGlyph extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Icon(
-            saved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            saved ? LucideIcons.heart : LucideIcons.heart,
             color: Colors.white,
             size: 20,
           ),

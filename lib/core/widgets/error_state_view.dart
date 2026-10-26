@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -28,10 +29,17 @@ class ErrorStateView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 64, color: AppColors.error),
+            const Icon(
+              LucideIcons.circleAlert,
+              size: 64,
+              color: AppColors.error,
+            ),
             const SizedBox(height: AppSpacing.lg),
-            Text(title, textAlign: TextAlign.center, style: AppTypography.titleLg),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: AppTypography.titleLg,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               message,

@@ -1,3 +1,4 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -23,13 +24,15 @@ class AppHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.margin, vertical: AppSpacing.sm),
+        horizontal: AppSpacing.margin,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
         children: [
           if (showMenu)
             IconButton(
               onPressed: onMenu,
-              icon: const Icon(Icons.menu_rounded),
+              icon: const Icon(LucideIcons.menu),
               color: AppColors.primary,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),

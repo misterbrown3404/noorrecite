@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
@@ -20,6 +22,12 @@ Future<void> main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      LicenseRegistry.addLicense(() async* {
+        final credits = await rootBundle.loadString(
+          'assets/images/reciter_credits.txt',
+        );
+        yield LicenseEntryWithLineBreaks(['Reciter portraits'], credits);
+      });
 
       FlutterError.onError = CrashReporter.instance.recordFlutterError;
 
@@ -40,15 +48,23 @@ Future<void> main() async {
           precacheImage(const AssetImage(AppAssets.splashQuran), context);
         }
         // Warm the surah cache; failure here is non-fatal (handled downstream).
-        unawaited(sl<GetSuwar>()().then((_) {}, onError: (Object e, StackTrace s) {
-          CrashReporter.instance.recordError(e, s, reason: 'prewarm suwar');
-        }));
+        unawaited(
+          sl<GetSuwar>()().then(
+            (_) {},
+            onError: (Object e, StackTrace s) {
+              CrashReporter.instance.recordError(e, s, reason: 'prewarm suwar');
+            },
+          ),
+        );
       });
 
       runApp(const QariVerseApp());
     },
-    (error, stack) => CrashReporter.instance
-        .recordError(error, stack, reason: 'uncaught zone error'),
+    (error, stack) => CrashReporter.instance.recordError(
+      error,
+      stack,
+      reason: 'uncaught zone error',
+    ),
   );
 }
 

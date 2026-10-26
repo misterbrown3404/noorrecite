@@ -47,21 +47,21 @@ abstract final class AppShadows {
 
   /// Soft outer glow in primary emerald (DESIGN.md: blur 15, spread -2).
   static List<BoxShadow> primaryGlow({double opacity = 0.45}) => [
-        BoxShadow(
-          color: AppColors.primary.withValues(alpha: opacity),
-          blurRadius: 15,
-          spreadRadius: -2,
-          offset: const Offset(0, 4),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.primary.withValues(alpha: opacity),
+      blurRadius: 15,
+      spreadRadius: -2,
+      offset: const Offset(0, 4),
+    ),
+  ];
 
   /// Gold glow for premium / "Elite" surfaces.
   static List<BoxShadow> goldGlow({double opacity = 0.4}) => [
-        BoxShadow(
-          color: AppColors.tertiaryContainer.withValues(alpha: opacity),
-          blurRadius: 15,
-          spreadRadius: -2,
-          offset: const Offset(0, 4),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.tertiaryContainer.withValues(alpha: opacity),
+      blurRadius: 15,
+      spreadRadius: -2,
+      offset: const Offset(0, 4),
+    ),
+  ];
 }

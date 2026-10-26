@@ -62,12 +62,14 @@ class ReciterRepositoryImpl implements ReciterRepository {
   Future<void> _writeCache(String language, List<Reciter> reciters) async {
     final envelope = CacheEnvelope<List<dynamic>>(
       data: reciters
-          .map((r) => ReciterModel(
-                id: r.id,
-                name: r.name,
-                letter: r.letter,
-                moshaf: r.moshaf,
-              ).toJson())
+          .map(
+            (r) => ReciterModel(
+              id: r.id,
+              name: r.name,
+              letter: r.letter,
+              moshaf: r.moshaf,
+            ).toJson(),
+          )
           .toList(),
       savedAtMs: DateTime.now().millisecondsSinceEpoch,
     );

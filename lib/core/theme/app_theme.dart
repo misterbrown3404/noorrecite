@@ -52,10 +52,10 @@ abstract final class AppTheme {
   static ThemeData dark() {
     const scheme = ColorScheme(
       brightness: Brightness.dark,
-      primary: Color(0xFF64DD91),
-      onPrimary: Color(0xFF00391C),
-      primaryContainer: Color(0xFF00522B),
-      onPrimaryContainer: Color(0xFF82FAAB),
+      primary: Color(0xFFC5BAFF),
+      onPrimary: Color(0xFF2D226C),
+      primaryContainer: Color(0xFF4937A1),
+      onPrimaryContainer: Color(0xFFE7DFFF),
       secondary: Color(0xFF4DDAC8),
       onSecondary: Color(0xFF003731),
       secondaryContainer: Color(0xFF00504A),
@@ -68,13 +68,13 @@ abstract final class AppTheme {
       onError: Color(0xFF690005),
       errorContainer: Color(0xFF93000A),
       onErrorContainer: Color(0xFFFFDAD6),
-      surface: Color(0xFF0E1512),
+      surface: Color(0xFF151321),
       onSurface: Color(0xFFDEE4DC),
-      surfaceDim: Color(0xFF0E1512),
+      surfaceDim: Color(0xFF151321),
       surfaceBright: Color(0xFF343B37),
-      surfaceContainerLowest: Color(0xFF090F0D),
-      surfaceContainerLow: Color(0xFF161D1A),
-      surfaceContainer: Color(0xFF1A211E),
+      surfaceContainerLowest: Color(0xFF100E1B),
+      surfaceContainerLow: Color(0xFF1E1B2D),
+      surfaceContainer: Color(0xFF252136),
       surfaceContainerHigh: Color(0xFF252C28),
       surfaceContainerHighest: Color(0xFF303733),
       onSurfaceVariant: Color(0xFFBEC9C2),
@@ -83,28 +83,63 @@ abstract final class AppTheme {
       inverseSurface: Color(0xFFDEE4DC),
       onInverseSurface: Color(0xFF2B322E),
       inversePrimary: Color(0xFF006A39),
-      surfaceTint: Color(0xFF64DD91),
+      surfaceTint: Color(0xFFC5BAFF),
     );
     return _build(scheme);
   }
 
   static ThemeData _build(ColorScheme scheme) => ThemeData(
-        useMaterial3: true,
-        colorScheme: scheme,
-        scaffoldBackgroundColor: scheme.surface,
-        textTheme: AppTypography.textTheme(),
-        splashFactory: InkRipple.splashFactory,
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: false,
-          foregroundColor: scheme.onSurface,
-        ),
-        dividerTheme: DividerThemeData(
-          color: scheme.outlineVariant,
-          thickness: 1,
-          space: AppSpacing.lg,
-        ),
-      );
+    useMaterial3: true,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: scheme.surface,
+    textTheme: AppTypography.textTheme().apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: scheme.surfaceContainerLow,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide.none,
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(48, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: scheme.surface,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+    ),
+    splashFactory: InkRipple.splashFactory,
+    appBarTheme: AppBarTheme(
+      backgroundColor: scheme.surfaceContainerLow,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      toolbarHeight: 72,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
+      ),
+      titleTextStyle: TextStyle(
+        color: scheme.onSurface,
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -.5,
+      ),
+      centerTitle: false,
+      foregroundColor: scheme.onSurface,
+    ),
+    dividerTheme: DividerThemeData(
+      color: scheme.outlineVariant,
+      thickness: 1,
+      space: AppSpacing.lg,
+    ),
+  );
 }

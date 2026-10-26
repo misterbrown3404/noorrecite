@@ -56,13 +56,15 @@ class ReflectionsController extends GetxController {
 
     final key = '$surahId-$ayahNumber';
     reflections.removeWhere((r) => r.verseKey == key);
-    reflections.add(Reflection(
-      surahId: surahId,
-      ayahNumber: ayahNumber,
-      reference: reference,
-      note: trimmed,
-      savedAtMs: savedAtMs,
-    ));
+    reflections.add(
+      Reflection(
+        surahId: surahId,
+        ayahNumber: ayahNumber,
+        reference: reference,
+        note: trimmed,
+        savedAtMs: savedAtMs,
+      ),
+    );
     reflections.sort((a, b) => b.savedAtMs.compareTo(a.savedAtMs));
 
     await _persist();
@@ -78,7 +80,7 @@ class ReflectionsController extends GetxController {
   }
 
   Future<void> _persist() => _storage.writeJsonList(
-        StorageKeys.reflections,
-        reflections.map((r) => r.toJson()).toList(),
-      );
+    StorageKeys.reflections,
+    reflections.map((r) => r.toJson()).toList(),
+  );
 }

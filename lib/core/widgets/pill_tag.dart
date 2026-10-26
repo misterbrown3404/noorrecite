@@ -15,16 +15,16 @@ class PillTag extends StatelessWidget {
 
   /// Emerald-tinted variant (default).
   const PillTag.emerald(String label, {Key? key})
-      : this(key: key, label: label);
+    : this(key: key, label: label);
 
   /// Gold-tinted variant for premium / "Elite" markers.
   const PillTag.gold(String label, {Key? key})
-      : this(
-          key: key,
-          label: label,
-          foreground: AppColors.onTertiaryFixedVariant,
-          background: AppColors.tertiaryFixed,
-        );
+    : this(
+        key: key,
+        label: label,
+        foreground: AppColors.onTertiaryFixedVariant,
+        background: AppColors.tertiaryFixed,
+      );
 
   final String label;
   final Color foreground;
@@ -35,9 +35,12 @@ class PillTag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs + 2,
+      ),
       decoration: BoxDecoration(
-        color: background ?? AppColors.secondaryContainer.withValues(alpha: 0.5),
+        color:
+            background ?? AppColors.secondaryContainer.withValues(alpha: 0.5),
         borderRadius: AppRadii.pillRadius,
       ),
       child: Row(
@@ -48,13 +51,13 @@ class PillTag extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
           ],
           Flexible(
-          child: Text(
-            label.toUpperCase(),
-            style: AppTypography.labelCaps.copyWith(color: foreground),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            child: Text(
+              label.toUpperCase(),
+              style: AppTypography.labelCaps.copyWith(color: foreground),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
         ],
       ),
     );

@@ -41,8 +41,11 @@ class LocalStorageService {
     } catch (e, s) {
       // Corrupt / unreadable box (bad key, partial write). Recover by wiping
       // and recreating so the app still launches.
-      CrashReporter.instance
-          .recordError(e, s, reason: 'hive open failed — recreating box');
+      CrashReporter.instance.recordError(
+        e,
+        s,
+        reason: 'hive open failed — recreating box',
+      );
       await Hive.deleteBoxFromDisk(_boxName);
       final box = await Hive.openBox(_boxName, encryptionCipher: cipher);
       return LocalStorageService._(box);
@@ -63,10 +66,15 @@ class LocalStorageService {
       }
       return HiveAesCipher(base64Url.decode(encoded));
     } catch (e, s) {
-      CrashReporter.instance.recordError(e, s,
-          reason: 'secure key unavailable — falling back to unencrypted box');
+      CrashReporter.instance.recordError(
+        e,
+        s,
+        reason: 'secure key unavailable — falling back to unencrypted box',
+      );
       if (kDebugMode) {
-        debugPrint('LocalStorageService: keystore unavailable, box unencrypted');
+        debugPrint(
+          'LocalStorageService: keystore unavailable, box unencrypted',
+        );
       }
       return null;
     }

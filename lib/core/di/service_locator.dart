@@ -1,3 +1,5 @@
+import '../../features/reading_progress/presentation/reading_progress_controller.dart';
+import '../../features/playlists/presentation/playlists_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
@@ -85,14 +87,18 @@ void setupDependencies(LocalStorageService storage) {
 /// survive navigation; screen-scoped controllers are created by their route
 /// bindings instead.
 void _registerControllers(LocalStorageService storage) {
+  Get.put(ReadingProgressController(storage), permanent: true);
+  Get.put(PlaylistsController(storage), permanent: true);
   // Connectivity first: it powers the app-wide offline banner and drives an
   // opportunistic re-fetch of network screens the moment signal returns.
   Get.put(ConnectivityController(), permanent: true);
 
   // Downloads first: the audio controller prefers a downloaded local file over
   // the remote stream, so this must exist before playback starts.
-  Get.put(DownloadController(storage, sl<DownloadFileService>()),
-      permanent: true);
+  Get.put(
+    DownloadController(storage, sl<DownloadFileService>()),
+    permanent: true,
+  );
 
   // Audio — permanent so playback survives navigation between the player and tabs.
   Get.put(AudioController(storage), permanent: true);

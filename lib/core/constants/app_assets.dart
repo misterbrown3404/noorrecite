@@ -11,6 +11,7 @@ abstract final class AppAssets {
   static const authMosque = '$_img/authentication_screen__1.jpg';
 
   // Home.
+  static const homeQuran = '$_img/home_quran_unsplash.jpg';
   static const mosqueLandscape = '$_img/home_dashboard__1.jpg';
   static const userAvatar = '$_img/home_dashboard__5.jpg';
 
@@ -22,125 +23,40 @@ abstract final class AppAssets {
   static const goldOrnament = '$_img/premium_subscription_screen__1.jpg';
   static const profileAvatar = '$_img/profile_screen__1.jpg';
 
-  /// Reciter portraits, indexed to align with [reciterPortraits].
-  static const reciterMishary = '$_img/download_center__2.jpg';
-  static const reciterSudais = '$_img/reciters_screen__7.jpg';
-  static const reciterNigeria = '$_img/reciters_screen__3.jpg';
-  static const reciterIndonesia = '$_img/reciters_screen__2.jpg';
-  static const reciterEgypt = '$_img/reciters_screen__8.jpg';
-  static const reciterSaudiYoung = '$_img/reciters_screen__1.jpg';
-  static const reciterIran = '$_img/reciters_screen__5.jpg';
-  static const reciterMorocco = '$_img/reciters_screen__6.jpg';
-  static const reciterOman = '$_img/reciters_screen__4.jpg';
-
-  /// Maps reciter API IDs to portrait assets. Reciters not in this map
-  /// fall back to a generic avatar in the UI.
+  /// Verified reciter portraits matched to named source profiles.
+  /// Sources and licenses: assets/images/reciter_sources.json.
+  /// Unmapped reciters deliberately use the neutral UI avatar.
   static const Map<int, String> reciterImages = {
-    1: reciterSudais,
-    2: reciterSudais,
-    3: reciterSudais,
-    4: reciterSudais,
-    5: reciterSudais,
-    6: reciterSudais,
-    7: reciterSudais,
-    8: reciterSudais,
-    9: reciterSudais,
-    10: reciterSudais,
-    11: reciterSudais,
-    12: reciterSudais,
-    13: reciterSudais,
-    14: reciterSudais,
-    15: reciterSaudiYoung,
-    16: reciterSaudiYoung,
-    17: reciterSaudiYoung,
-    18: reciterSaudiYoung,
-    19: reciterSudais,
-    20: reciterSudais,
-    21: reciterSudais,
-    22: reciterSudais,
-    23: reciterSudais,
-    24: reciterSaudiYoung,
-    25: reciterSudais,
-    26: reciterSaudiYoung,
-    27: reciterSudais,
-    28: reciterSudais,
-    29: reciterSudais,
-    30: reciterSaudiYoung,
-    31: reciterSudais,
-    32: reciterSaudiYoung,
-    33: reciterSudais,
-    34: reciterSaudiYoung,
-    35: reciterSudais,
-    36: reciterSaudiYoung,
-    37: reciterSudais,
-    38: reciterSaudiYoung,
-    39: reciterSudais,
-    40: reciterSaudiYoung,
-    41: reciterSaudiYoung,
-    42: reciterSaudiYoung,
-    43: reciterSaudiYoung,
-    44: reciterSaudiYoung,
-    46: reciterSaudiYoung,
-    47: reciterSaudiYoung,
-    48: reciterSaudiYoung,
-    49: reciterSudais,
-    50: reciterSaudiYoung,
-    51: reciterEgypt,
-    52: reciterSudais,
-    54: reciterSudais,
-    55: reciterSaudiYoung,
-    56: reciterSaudiYoung,
-    57: reciterSaudiYoung,
-    58: reciterSudais,
-    59: reciterSudais,
-    60: reciterSaudiYoung,
-    61: reciterSudais,
-    62: reciterSudais,
-    63: reciterSudais,
-    64: reciterSaudiYoung,
-    66: reciterSaudiYoung,
-    67: reciterSaudiYoung,
-    68: reciterSaudiYoung,
-    69: reciterSaudiYoung,
-    70: reciterSaudiYoung,
-    71: reciterSaudiYoung,
-    72: reciterSaudiYoung,
-    73: reciterSaudiYoung,
-    74: reciterSaudiYoung,
-    76: reciterSaudiYoung,
-    77: reciterSudais,
-    78: reciterSaudiYoung,
-    79: reciterSaudiYoung,
-    80: reciterSaudiYoung,
-    81: reciterSudais,
-    82: reciterSaudiYoung,
-    83: reciterSaudiYoung,
-    84: reciterSaudiYoung,
-    85: reciterSaudiYoung,
-    86: reciterSaudiYoung,
-    87: reciterSaudiYoung,
-    88: reciterSaudiYoung,
-    89: reciterSaudiYoung,
-    90: reciterSaudiYoung,
-    91: reciterSaudiYoung,
-    92: reciterSaudiYoung,
-    93: reciterSaudiYoung,
-    94: reciterSaudiYoung,
-    95: reciterSaudiYoung,
-    96: reciterSaudiYoung,
-    97: reciterSaudiYoung,
-    98: reciterSaudiYoung,
-    100: reciterSaudiYoung,
-    102: reciterSudais,
-    112: reciterEgypt,
-    118: reciterEgypt,
-    121: reciterSudais,
-    123: reciterMishary,
-    125: reciterSudais,
-    128: reciterIndonesia,
-    138: reciterMorocco,
-    150: reciterSaudiYoung,
-    152: reciterSudais,
+    6: 'assets/images/reciter_6.jpg', // Ahmad Al-Hawashi
+    9: 'assets/images/reciter_9.jpg', // Ahmad Nauina
+    13: 'assets/images/reciter_13.png', // Alzain Mohammad Ahmad
+    16: 'assets/images/reciter_16.jpeg', // Aloyoon Al-Koshi
+    30: 'assets/images/reciter_30.jpg', // Saad Al-Ghamdi
+    31: 'assets/images/reciter_31.png', // Saud Al-Shuraim
+    41: 'assets/images/reciter_41.jpg', // Saleh Al-Talib
+    43: 'assets/images/reciter_43.jpg', // Salah Albudair
+    48: 'assets/images/reciter_48.jpg', // Adel Ryyan
+    51: 'assets/images/reciter_51.jpg', // Abdulbasit Abdulsamad
+    54: 'assets/images/reciter_54.jpg', // Abdulrahman Alsudaes
+    62: 'assets/images/reciter_62.png', // Abdullah Al-Johany
+    67: 'assets/images/reciter_67.jpg', // Abdulmohsen Al-Qasim
+    76: 'assets/images/reciter_76.jpeg', // Ali Jaber
+    86: 'assets/images/reciter_86.jpg', // Nasser Alqatami
+    92: 'assets/images/reciter_92.jpg', // Yasser Al-Dosari
+    102: 'assets/images/reciter_102.png', // Maher Al Meaqli
+    111: 'assets/images/reciter_111.png', // Mohammed Jibreel
+    112: 'assets/images/reciter_112.jpg', // Mohammed Siddiq Al-Minshawi
+    118: 'assets/images/reciter_118.jpg', // Mahmoud Khalil Al-Hussary
+    123: 'assets/images/reciter_123.jpg', // Mishary Alafasi
+    125: 'assets/images/reciter_125.jpg', // Mustafa Ismail
+    128: 'assets/images/reciter_128.jpg', // Muamar (From Indonesia)
+    160: 'assets/images/reciter_160.jpg', // Adel Al-Khalbany
+    217: 'assets/images/reciter_217.jpg', // Bandar Balilah
+    221: 'assets/images/reciter_221.png', // Raad Al Kurdi
+    231: 'assets/images/reciter_231.jpg', // Hazza Al-Balushi
+    241: 'assets/images/reciter_241.jpg', // Mohammad Refat
+    254: 'assets/images/reciter_254.jpg', // Bader Alturki
+    21203: 'assets/images/reciter_21203.jpg', // Ayman Rushdi Swaid
   };
 
   /// Returns the asset path for a reciter portrait, or null if unmapped.

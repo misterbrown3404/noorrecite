@@ -28,8 +28,20 @@ class Floating extends StatefulWidget {
 
 class _FloatingState extends State<Floating>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: widget.duration)..repeat();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  )..repeat();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -39,6 +51,7 @@ class _FloatingState extends State<Floating>
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
     return AnimatedBuilder(
       animation: _c,
       builder: (context, child) {
@@ -72,8 +85,20 @@ class PulseGlow extends StatefulWidget {
 
 class _PulseGlowState extends State<PulseGlow>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: widget.duration)..repeat();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  )..repeat();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -83,6 +108,7 @@ class _PulseGlowState extends State<PulseGlow>
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
     return AnimatedBuilder(
       animation: _c,
       builder: (context, child) {
@@ -112,7 +138,7 @@ class FadeInUp extends StatefulWidget {
     required this.child,
     this.delay = Duration.zero,
     this.offset = 24,
-    this.duration = const Duration(milliseconds: 900),
+    this.duration = const Duration(milliseconds: 420),
   });
 
   final Widget child;
@@ -126,10 +152,14 @@ class FadeInUp extends StatefulWidget {
 
 class _FadeInUpState extends State<FadeInUp>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: widget.duration);
-  late final Animation<double> _curve =
-      CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  );
+  late final Animation<double> _curve = CurvedAnimation(
+    parent: _c,
+    curve: Curves.easeOutCubic,
+  );
 
   @override
   void initState() {
@@ -147,6 +177,7 @@ class _FadeInUpState extends State<FadeInUp>
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
     return AnimatedBuilder(
       animation: _curve,
       builder: (context, child) => Opacity(
@@ -181,13 +212,16 @@ class AnimatedWaveform extends StatefulWidget {
 class _AnimatedWaveformState extends State<AnimatedWaveform>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1200))
-    ..repeat();
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  )..repeat();
 
   @override
   void didUpdateWidget(AnimatedWaveform oldWidget) {
     super.didUpdateWidget(oldWidget);
-    widget.playing ? _c.repeat() : _c.stop();
+    widget.playing && !MediaQuery.disableAnimationsOf(context)
+        ? _c.repeat()
+        : _c.stop();
   }
 
   @override
@@ -205,10 +239,7 @@ class _AnimatedWaveformState extends State<AnimatedWaveform>
         builder: (context, _) => Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            for (var i = 0; i < widget.barCount; i++)
-              _bar(i),
-          ],
+          children: [for (var i = 0; i < widget.barCount; i++) _bar(i)],
         ),
       ),
     );
@@ -255,8 +286,20 @@ class Shimmer extends StatefulWidget {
 }
 
 class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: widget.duration)..repeat();
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.duration,
+  )..repeat();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -266,6 +309,7 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
     if (!widget.enabled) return widget.child;
     return AnimatedBuilder(
       animation: _c,
@@ -276,11 +320,7 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
           return LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.transparent,
-              widget.highlight,
-              Colors.transparent,
-            ],
+            colors: [Colors.transparent, widget.highlight, Colors.transparent],
             stops: const [0.35, 0.5, 0.65],
             transform: _SlideGradient(dx / bounds.width),
           ).createShader(bounds);
@@ -313,7 +353,7 @@ class PressableScale extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.scale = 0.86,
+    this.scale = 0.97,
     this.duration = const Duration(milliseconds: 120),
   });
 
@@ -344,7 +384,9 @@ class _PressableScaleState extends State<PressableScale> {
       onTapCancel: () => _set(false),
       onTap: widget.onTap,
       child: AnimatedScale(
-        scale: _pressed ? widget.scale : 1,
+        scale: _pressed && !MediaQuery.disableAnimationsOf(context)
+            ? widget.scale
+            : 1,
         duration: widget.duration,
         curve: Curves.easeOut,
         child: widget.child,
@@ -364,7 +406,7 @@ class AnimatedProgressBar extends StatelessWidget {
     this.minHeight = 8,
     this.color = AppColors.primary,
     this.backgroundColor = AppColors.secondaryContainer,
-    this.duration = const Duration(milliseconds: 900),
+    this.duration = const Duration(milliseconds: 420),
   });
 
   final double value;
@@ -407,10 +449,10 @@ class SkeletonBox extends StatelessWidget {
 
   /// Circular skeleton (avatars, badges) of the given diameter.
   const SkeletonBox.circle({super.key, required double size})
-      : width = size,
-        height = size,
-        radius = AppRadii.sm,
-        shape = BoxShape.circle;
+    : width = size,
+      height = size,
+      radius = AppRadii.sm,
+      shape = BoxShape.circle;
 
   final double? width;
   final double height;
@@ -426,8 +468,9 @@ class SkeletonBox extends StatelessWidget {
         height: height,
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerHigh,
-          borderRadius:
-              shape == BoxShape.circle ? null : BorderRadius.circular(radius),
+          borderRadius: shape == BoxShape.circle
+              ? null
+              : BorderRadius.circular(radius),
           shape: shape,
         ),
       ),
@@ -458,7 +501,8 @@ class ParticleField extends StatefulWidget {
   State<ParticleField> createState() => _ParticleFieldState();
 }
 
-class _ParticleFieldState extends State<ParticleField> with TickerProviderStateMixin {
+class _ParticleFieldState extends State<ParticleField>
+    with TickerProviderStateMixin {
   late final List<_Particle> _particles;
   late final AnimationController _controller;
 
@@ -477,12 +521,24 @@ class _ParticleFieldState extends State<ParticleField> with TickerProviderStateM
       return _Particle(
         startX: random.nextDouble() * screenWidth,
         startY: screenHeight + random.nextDouble() * 200,
-        size: widget.minSize + random.nextDouble() * (widget.maxSize - widget.minSize),
+        size:
+            widget.minSize +
+            random.nextDouble() * (widget.maxSize - widget.minSize),
         color: widget.colors[random.nextInt(widget.colors.length)],
-        opacity: widget.opacityRange[0] + random.nextDouble() * (widget.opacityRange[1] - widget.opacityRange[0]),
+        opacity:
+            widget.opacityRange[0] +
+            random.nextDouble() *
+                (widget.opacityRange[1] - widget.opacityRange[0]),
         travelDistance: screenHeight + 400,
         horizontalDrift: (random.nextDouble() - 0.5) * 40,
-        duration: widget.durationRange[0] + Duration(milliseconds: random.nextInt(widget.durationRange[1].inMilliseconds - widget.durationRange[0].inMilliseconds)),
+        duration:
+            widget.durationRange[0] +
+            Duration(
+              milliseconds: random.nextInt(
+                widget.durationRange[1].inMilliseconds -
+                    widget.durationRange[0].inMilliseconds,
+              ),
+            ),
       );
     });
   }
@@ -501,8 +557,11 @@ class _ParticleFieldState extends State<ParticleField> with TickerProviderStateM
         children: [
           for (final particle in _particles)
             Positioned(
-              left: particle.startX + _controller.value * particle.horizontalDrift,
-              top: particle.startY - _controller.value * particle.travelDistance,
+              left:
+                  particle.startX +
+                  _controller.value * particle.horizontalDrift,
+              top:
+                  particle.startY - _controller.value * particle.travelDistance,
               child: Opacity(
                 opacity: particle.opacity,
                 child: Container(
@@ -587,11 +646,7 @@ class _ParallaxWidgetState extends State<ParallaxWidget> {
 /// Gold gradient text shader for the QariVerse wordmark, matching the
 /// Stitch mockups' `gold-text-gradient` CSS class.
 class GoldGradientText extends StatelessWidget {
-  const GoldGradientText({
-    super.key,
-    required this.text,
-    required this.style,
-  });
+  const GoldGradientText({super.key, required this.text, required this.style});
 
   final String text;
   final TextStyle style;
@@ -689,17 +744,18 @@ class ResponsiveGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
-        final itemWidth =
-            (availableWidth - (columns - 1) * spacing) / columns;
+        final itemWidth = (availableWidth - (columns - 1) * spacing) / columns;
 
         return Wrap(
           spacing: spacing,
           runSpacing: runSpacing,
           children: children
-              .map((child) => SizedBox(
-                    width: itemWidth > 0 ? itemWidth : null,
-                    child: child,
-                  ))
+              .map(
+                (child) => SizedBox(
+                  width: itemWidth > 0 ? itemWidth : null,
+                  child: child,
+                ),
+              )
               .toList(),
         );
       },

@@ -17,8 +17,7 @@ class BookmarksController extends GetxController {
   final bookmarks = <Bookmark>[].obs;
 
   /// Favorited subset, newest first — backs the "favorites" filter.
-  List<Bookmark> get favorites =>
-      bookmarks.where((b) => b.isFavorite).toList();
+  List<Bookmark> get favorites => bookmarks.where((b) => b.isFavorite).toList();
 
   int get count => bookmarks.length;
 
@@ -43,17 +42,18 @@ class BookmarksController extends GetxController {
   bool isBookmarked(int surahId, int ayah) =>
       bookmarks.any((b) => b.surahId == surahId && b.ayah == ayah);
 
-  Future<void> add(Bookmark bookmark) async {
-    // Replace any existing entry for the same ayah (keeps one per surah+ayah).
-    bookmarks
-      ..removeWhere((b) => b.id == bookmark.id)
-      ..insert(0, bookmark);
-    await _persist();
-  }
+  Future<void> add(Bookmark bookmark) =>
+      _commit([bookmark, ...bookmarks.where((b) => b.id != bookmark.id)]);
 
-  Future<void> remove(String id) async {
-    bookmarks.removeWhere((b) => b.id == id);
-    await _persist();
+  Future<void> remove(String id) =>
+      _commit(bookmarks.where((b) => b.id != id).toList());
+
+  Future<void> _commit(List<Bookmark> next) async {
+    await _storage.writeJsonList(
+      StorageKeys.bookmarks,
+      next.map((b) => b.toJson()).toList(),
+    );
+    bookmarks.assignAll(next);
   }
 
   /// Adds [bookmark] if absent, removes it if already saved. Returns the new
@@ -71,13 +71,8 @@ class BookmarksController extends GetxController {
     final index = bookmarks.indexWhere((b) => b.id == id);
     if (index < 0) return;
     final current = bookmarks[index];
-    bookmarks[index] = current.copyWith(isFavorite: !current.isFavorite);
-    await _persist();
+    final next = bookmarks.toList();
+    next[index] = current.copyWith(isFavorite: !current.isFavorite);
+    await _commit(next);
   }
-
-  Future<void> _persist() =>
-      _storage.writeJsonList(
-        StorageKeys.bookmarks,
-        bookmarks.map((b) => b.toJson()).toList(),
-      );
 }

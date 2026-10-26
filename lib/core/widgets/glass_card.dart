@@ -16,7 +16,7 @@ class GlassCard extends StatelessWidget {
     required this.child,
     this.padding = AppSpacing.cardInsets,
     this.borderRadius = AppRadii.cardRadius,
-    this.blur = 20,
+    this.blur = 0,
     this.fillColor,
     this.showLightLeak = true,
     this.shadows,
@@ -54,13 +54,16 @@ class GlassCard extends StatelessWidget {
             decoration: BoxDecoration(
               // DESIGN.md glass panels sit at ~40–70% fill so the frosted blur
               // reads through; 0.55 keeps text legible without going opaque.
-              color: fillColor ??
-                  AppColors.surfaceContainerLowest.withValues(alpha: 0.55),
+              color:
+                  fillColor ??
+                  Theme.of(context).colorScheme.surfaceContainerLowest,
               borderRadius: borderRadius,
               border: Border.all(
                 color: showLightLeak
-                    ? AppColors.glassStroke
-                    : AppColors.outlineVariant,
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.outlineVariant.withValues(alpha: 0.25)
+                    : Theme.of(context).colorScheme.outlineVariant,
                 width: 1,
               ),
             ),

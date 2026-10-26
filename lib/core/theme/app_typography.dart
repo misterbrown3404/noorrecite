@@ -7,7 +7,7 @@ import 'app_colors.dart';
 ///
 /// - **Amiri** — classical Arabic (Quran + Arabic UI). Needs generous line
 ///   height (≥1.8×) for Tashkeel.
-/// - **Literata** — editorial/authoritative headings.
+/// - **Inter** — expressive headings and clear interface labels.
 /// - **Inter** — clean body copy and interface labels.
 ///
 /// Fonts are **bundled locally** in `assets/google_fonts/` (offline-first) and
@@ -32,7 +32,7 @@ abstract final class AppTypography {
   );
 
   /// Editorial heading, desktop/large. Literata 700.
-  static TextStyle headlineLg = GoogleFonts.literata(
+  static TextStyle headlineLg = GoogleFonts.inter(
     fontSize: 32,
     fontWeight: FontWeight.w700,
     height: 40 / 32,
@@ -40,7 +40,7 @@ abstract final class AppTypography {
   );
 
   /// Editorial heading, mobile. Literata 700.
-  static TextStyle headlineLgMobile = GoogleFonts.literata(
+  static TextStyle headlineLgMobile = GoogleFonts.inter(
     fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 34 / 26,
@@ -48,7 +48,7 @@ abstract final class AppTypography {
   );
 
   /// Section title (Literata 700, mid scale).
-  static TextStyle titleLg = GoogleFonts.literata(
+  static TextStyle titleLg = GoogleFonts.inter(
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 28 / 22,

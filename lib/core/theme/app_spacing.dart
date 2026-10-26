@@ -25,8 +25,9 @@ abstract final class AppSpacing {
   /// Internal padding for cards / glass panels.
   static const double cardPadding = 20;
 
-  static const EdgeInsets screenPadding =
-      EdgeInsets.symmetric(horizontal: margin);
+  static const EdgeInsets screenPadding = EdgeInsets.symmetric(
+    horizontal: margin,
+  );
   static const EdgeInsets cardInsets = EdgeInsets.all(cardPadding);
 }
 
@@ -46,7 +47,9 @@ abstract final class AppRadii {
   static const Radius rLg = Radius.circular(lg);
   static const Radius rXl = Radius.circular(xl);
 
-  static const BorderRadius cardRadius = BorderRadius.all(rLg);
+  static const BorderRadius cardRadius = BorderRadius.all(rXl);
   static const BorderRadius controlRadius = BorderRadius.all(rXl);
-  static const BorderRadius pillRadius = BorderRadius.all(Radius.circular(full));
+  static const BorderRadius pillRadius = BorderRadius.all(
+    Radius.circular(full),
+  );
 }

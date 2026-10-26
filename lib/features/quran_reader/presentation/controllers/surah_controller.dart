@@ -65,17 +65,12 @@ class SurahController extends GetxController {
       case SurahFilter.juz:
         return source;
       case SurahFilter.makki:
-        return source
-            .where((s) => s.type == RevelationType.makkah)
-            .toList();
+        return source.where((s) => s.type == RevelationType.makkah).toList();
       case SurahFilter.madani:
-        return source
-            .where((s) => s.type == RevelationType.madina)
-            .toList();
+        return source.where((s) => s.type == RevelationType.madina).toList();
       case SurahFilter.bookmarks:
         if (!Get.isRegistered<BookmarksController>()) return source;
-        final saved = Get.find<BookmarksController>()
-            .bookmarks
+        final saved = Get.find<BookmarksController>().bookmarks
             .map((b) => b.surahId)
             .toSet();
         return source.where((s) => saved.contains(s.id)).toList();
@@ -123,22 +118,17 @@ class SurahController extends GetxController {
     isLoading(true);
     error('');
     final result = await _getSuwar();
-    result.fold(
-      (f) => error(f.message),
-      (data) {
-        suwar.assignAll(data);
-        _searchIndex
-          ..clear()
-          ..addEntries(
-            data.map(
-              (s) => MapEntry(
-                s.id,
-                '${s.name} ${s.revelationLabel}'.toLowerCase(),
-              ),
-            ),
-          );
-      },
-    );
+    result.fold((f) => error(f.message), (data) {
+      suwar.assignAll(data);
+      _searchIndex
+        ..clear()
+        ..addEntries(
+          data.map(
+            (s) =>
+                MapEntry(s.id, '${s.name} ${s.revelationLabel}'.toLowerCase()),
+          ),
+        );
+    });
     isLoading(false);
   }
 }

@@ -815,37 +815,37 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingSlide1Title.
   ///
   /// In en, this message translates to:
-  /// **'Discover Quran Recitation'**
+  /// **'Make room for Quran'**
   String get onboardingSlide1Title;
 
   /// No description provided for @onboardingSlide1Body.
   ///
   /// In en, this message translates to:
-  /// **'Experience the divine word through the world\'s most beautiful voices in a sanctuary designed for your soul.'**
+  /// **'Read at your pace. Save the verses you want to return to.'**
   String get onboardingSlide1Body;
 
   /// No description provided for @onboardingSlide2Title.
   ///
   /// In en, this message translates to:
-  /// **'Listen Anywhere'**
+  /// **'Find your favorite voice'**
   String get onboardingSlide2Title;
 
   /// No description provided for @onboardingSlide2Body.
   ///
   /// In en, this message translates to:
-  /// **'Download your favorite recitations and listen offline, even in the most remote sanctuaries.'**
+  /// **'Listen to your favorite reciters and download surahs for offline moments.'**
   String get onboardingSlide2Body;
 
   /// No description provided for @onboardingSlide3Title.
   ///
   /// In en, this message translates to:
-  /// **'Learn and Reflect'**
+  /// **'Bring faith into your day'**
   String get onboardingSlide3Title;
 
   /// No description provided for @onboardingSlide3Body.
   ///
   /// In en, this message translates to:
-  /// **'Dive deeper into the divine wisdom with word-by-word Tafsir and organized bookmarks for your spiritual journey.'**
+  /// **'Keep close to prayer times, daily ayahs, and morning and evening Azkar.'**
   String get onboardingSlide3Body;
 }
 

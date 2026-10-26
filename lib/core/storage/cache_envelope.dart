@@ -10,8 +10,9 @@ class CacheEnvelope<T> {
   final int savedAtMs;
 
   /// Age of the cached copy relative to [now] (defaults to wall clock).
-  Duration age([DateTime? now]) => (now ?? DateTime.now())
-      .difference(DateTime.fromMillisecondsSinceEpoch(savedAtMs));
+  Duration age([DateTime? now]) => (now ?? DateTime.now()).difference(
+    DateTime.fromMillisecondsSinceEpoch(savedAtMs),
+  );
 
   /// True when the cache is older than [ttl] and a refresh is warranted.
   bool isStale(Duration ttl, [DateTime? now]) => age(now) > ttl;

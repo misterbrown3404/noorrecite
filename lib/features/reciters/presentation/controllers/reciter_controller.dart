@@ -52,15 +52,12 @@ class ReciterController extends GetxController {
     isLoading(true);
     error('');
     final result = await _getReciters();
-    result.fold(
-      (f) => error(f.message),
-      (data) {
-        reciters.assignAll(data);
-        _searchIndex
-          ..clear()
-          ..addAll(data.map((r) => r.name.toLowerCase()));
-      },
-    );
+    result.fold((f) => error(f.message), (data) {
+      reciters.assignAll(data);
+      _searchIndex
+        ..clear()
+        ..addAll(data.map((r) => r.name.toLowerCase()));
+    });
     isLoading(false);
   }
 }

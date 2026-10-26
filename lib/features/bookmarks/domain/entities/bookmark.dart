@@ -32,40 +32,40 @@ class Bookmark extends Equatable {
   String get id => '$surahId:$ayah';
 
   Bookmark copyWith({String? note, bool? isFavorite}) => Bookmark(
-        surahId: surahId,
-        surahName: surahName,
-        ayah: ayah,
-        arabic: arabic,
-        translation: translation,
-        reference: reference,
-        note: note ?? this.note,
-        isFavorite: isFavorite ?? this.isFavorite,
-        savedAtMs: savedAtMs,
-      );
+    surahId: surahId,
+    surahName: surahName,
+    ayah: ayah,
+    arabic: arabic,
+    translation: translation,
+    reference: reference,
+    note: note ?? this.note,
+    isFavorite: isFavorite ?? this.isFavorite,
+    savedAtMs: savedAtMs,
+  );
 
   Map<String, dynamic> toJson() => {
-        'surahId': surahId,
-        'surahName': surahName,
-        'ayah': ayah,
-        'arabic': arabic,
-        'translation': translation,
-        'reference': reference,
-        'note': note,
-        'isFavorite': isFavorite,
-        'savedAtMs': savedAtMs,
-      };
+    'surahId': surahId,
+    'surahName': surahName,
+    'ayah': ayah,
+    'arabic': arabic,
+    'translation': translation,
+    'reference': reference,
+    'note': note,
+    'isFavorite': isFavorite,
+    'savedAtMs': savedAtMs,
+  };
 
   factory Bookmark.fromJson(Map<String, dynamic> json) => Bookmark(
-        surahId: json['surahId'] as int,
-        surahName: (json['surahName'] as String?) ?? '',
-        ayah: json['ayah'] as int,
-        arabic: (json['arabic'] as String?) ?? '',
-        translation: (json['translation'] as String?) ?? '',
-        reference: (json['reference'] as String?) ?? '',
-        note: (json['note'] as String?) ?? '',
-        isFavorite: (json['isFavorite'] as bool?) ?? false,
-        savedAtMs: (json['savedAtMs'] as int?) ?? 0,
-      );
+    surahId: json['surahId'] as int,
+    surahName: (json['surahName'] as String?) ?? '',
+    ayah: json['ayah'] as int,
+    arabic: (json['arabic'] as String?) ?? '',
+    translation: (json['translation'] as String?) ?? '',
+    reference: (json['reference'] as String?) ?? '',
+    note: (json['note'] as String?) ?? '',
+    isFavorite: (json['isFavorite'] as bool?) ?? false,
+    savedAtMs: (json['savedAtMs'] as int?) ?? 0,
+  );
 
   @override
   List<Object> get props => [id, isFavorite, note, savedAtMs];
