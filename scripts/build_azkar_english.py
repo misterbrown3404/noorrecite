@@ -42,15 +42,39 @@ def render_steps(steps, label, translation, transliteration, recordings):
             translation.append(clean(step['text']))
 
 result = []
+# Hisn 93–95 are morning-specific; 97 is evening-specific.
+# https://sunnah.com/hisn:93 through https://sunnah.com/hisn:97
+morning_only = {'93', '94', '95'}
+evening_only = {'97'}
+
+def recitation_arabic(steps):
+    parts = []
+    for step in steps:
+        if step['type'] == 'repeat':
+            parts.extend(recitation_arabic(step['steps']))
+        elif step['type'] == 'recitation':
+            parts.extend(item['dua']['arabic'] for item in step.get('items', []))
+    return parts
+
 for category in local:
     translated_entries = []
     for item in category['array']:
         # This one original entry uses its chapter filename instead of reference 153.
         ref = '153' if category['id'] == 53 else item['filename']
         entry = entries[ref]
+        period = {1: 'morning', 2: 'evening'}.get(category['id'])
+        applicable = not ((period == 'morning' and ref in evening_only)
+                          or (period == 'evening' and ref in morning_only))
         translation, transliteration, recordings = [], [], []
         render_steps(entry.get('steps', []), '', translation, transliteration, recordings)
-        for variant in entry.get('variations', []):
+        variants = entry.get('variations', [])
+        selected = [v for v in variants if v['id'] == period]
+        display_arabic = None
+        if selected:
+            variants = selected
+            display_arabic = '\n\n'.join(recitation_arabic(selected[0]['steps']))
+            assert display_arabic, ref
+        for variant in variants:
             label = variant.get('label', '')
             if label:
                 translation.append(label + ':')
@@ -70,6 +94,8 @@ for category in local:
             'translation': '\n\n'.join(translation),
             'transliteration': '\n\n'.join(transliteration) or None,
             'audio': recordings,
+            **({'applicable': applicable} if period else {}),
+            **({'display_arabic': display_arabic} if display_arabic else {}),
         })
     title = chapters[entry['chapterId']]['title']
     if category['id'] == 1: title = 'Morning remembrance'

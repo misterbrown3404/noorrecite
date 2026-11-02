@@ -128,19 +128,27 @@ class WorshipRepository {
       final entries = {
         for (final e in translated['entries'] as List) e['id']: e,
       };
-      category['array'] = (category['array'] as List).map((rawEntry) {
-        final entry = Map<String, dynamic>.from(rawEntry as Map);
-        final en = entries[entry['id']];
-        if (en == null || en['arabic'] != entry['text']) {
-          throw const FormatException(
-            'English content does not match the Arabic entry',
-          );
-        }
-        entry['translation'] = en['translation'];
-        entry['transliteration'] = en['transliteration'];
-        entry['audio_tracks'] = en['audio'];
-        return entry;
-      }).toList();
+      category['array'] = (category['array'] as List)
+          .where((rawEntry) {
+            final en = entries[rawEntry['id']];
+            return en == null || en['applicable'] != false;
+          })
+          .map((rawEntry) {
+            final entry = Map<String, dynamic>.from(rawEntry as Map);
+            final en = entries[entry['id']];
+            if (en == null || en['arabic'] != entry['text']) {
+              throw const FormatException(
+                'English content does not match the Arabic entry',
+              );
+            }
+            entry['translation'] = en['translation'];
+            // Validate against the original above before selecting a time variant.
+            entry['text'] = en['display_arabic'] ?? entry['text'];
+            entry['transliteration'] = en['transliteration'];
+            entry['audio_tracks'] = en['audio'];
+            return entry;
+          })
+          .toList();
       return AzkarCategory.fromJson(category);
     }).toList();
   }

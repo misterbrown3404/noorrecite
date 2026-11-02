@@ -11,6 +11,7 @@ import 'core/constants/app_assets.dart';
 import 'core/di/service_locator.dart';
 import 'core/error/crash_reporter.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/widget_service.dart';
 import 'core/storage/local_storage_service.dart';
 import 'features/quran_reader/domain/usecases/get_suwar.dart';
 
@@ -39,6 +40,7 @@ Future<void> main() async {
       await _initNotifications();
 
       setupDependencies(storage);
+      await WidgetService.init();
       GoogleFonts.config.allowRuntimeFetching = false;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {

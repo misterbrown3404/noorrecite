@@ -22,7 +22,7 @@ silently rewrite these values or cap the counter.
 `catalogue.json` is the user-bundled OpenDua v0.0.4 catalogue. The generated
 `azkar_en.json` maps its translations, recitation pronunciation guides, nested
 instructions, variants, and recording links onto all 133 original categories /
-291 entries. Original Arabic and counts are unchanged. English is matched using
+291 entries. Original Arabic and counts are retained in the source files. Morning/evening display variants use the matching Arabic from the bundled catalogue. English is matched using
 the Hisn reference in each original audio filename; category 53 uses the
 explicit reference 153 override. Runtime loading also checks exact Arabic text,
 so edited entries cannot silently inherit stale translations.
@@ -53,3 +53,15 @@ not update Quran progress or its duration cache.
 
 Entry point: Home → Azkar → categories / Dua collection / 99 Names of Allah /
 Tasbih counter. Category counters remain in memory for the open session.
+
+## Strict morning and evening sections
+
+The generator selects only the matching morning/evening variation for Arabic,
+English, pronunciation and recording links. Runtime still validates the original
+Arabic before applying `display_arabic`. Shared invocations remain in both sections.
+Hisn references 93, 94 and 95 appear only in Morning; reference 97 only in Evening.
+Timing references: https://sunnah.com/hisn:93, https://sunnah.com/hisn:94,
+https://sunnah.com/hisn:95 and https://sunnah.com/hisn:97.
+The source retains all 291 entries for traceability; `applicable: false` entries
+are excluded by the repository, giving 23 Morning, 21 Evening and 287 displayed
+entries across 133 categories. All other categories are unchanged.

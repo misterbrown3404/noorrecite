@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qari_verse/features/azkar/data/worship_repository.dart';
@@ -26,7 +27,7 @@ void main() {
     final categories = await repository.categories();
     expect(categories.length, 133);
     expect(categories.map((e) => e.id).toSet().length, 133);
-    expect(categories.expand((e) => e.entries).length, 291);
+    expect(categories.expand((e) => e.entries).length, 287);
     expect(categories.first.title, 'أذكار الصباح');
     expect(categories[1].title, 'أذكار المساء');
     for (final category in categories) {
@@ -43,15 +44,15 @@ void main() {
       }
     }
     final morning = categories.first.entries[2];
+    final evening = categories[1].entries[2];
     expect(morning.transliteration, contains('Morning:'));
-    expect(morning.transliteration, contains('Evening:'));
-    expect(
-      morning.audio.map((e) => e.asset),
-      containsAll([
-        'assets/audio/azkar_audio/opendua-audio-hisn-v0.0.2/OD-077-1.mp3',
-        'assets/audio/azkar_audio/opendua-audio-hisn-v0.0.2/OD-077-2.mp3',
-      ]),
-    );
+    expect(morning.transliteration, isNot(contains('Evening:')));
+    expect(evening.transliteration, contains('Evening:'));
+    expect(evening.transliteration, isNot(contains('Morning:')));
+    expect(morning.text, startsWith('أَصْبَحْنَا'));
+    expect(evening.text, startsWith('أَمْسَيْنَا'));
+    expect(morning.audio.single.asset, endsWith('OD-077-1.mp3'));
+    expect(evening.audio.single.asset, endsWith('OD-077-2.mp3'));
     final safa = categories.firstWhere((c) => c.id == 119).entries.first;
     expect(safa.audio.length, 3);
     expect(safa.translation, contains('defeated the allied forces'));
@@ -63,6 +64,61 @@ void main() {
       expect(dua.reference, isNotEmpty);
     }
   });
+  test(
+    'morning and evening select matching content and audio throughout',
+    () async {
+      final categories = await WorshipRepository().categories();
+      final generated = jsonDecode(
+        File('assets/azkar/azkar_en.json').readAsStringSync(),
+      );
+      final source = jsonDecode(
+        File('assets/azkar/catalogue.json').readAsStringSync(),
+      );
+      final catalogue = {
+        for (final e in source['entries']) e['sourceReference']: e,
+      };
+      for (final id in [1, 2]) {
+        final category = categories.firstWhere((c) => c.id == id);
+        final period = id == 1 ? 'morning' : 'evening';
+        final opposite = id == 1 ? 'Evening:' : 'Morning:';
+        final mapped = (generated['categories'] as List).firstWhere(
+          (c) => c['id'] == id,
+        );
+        final expected = (mapped['entries'] as List)
+            .where((e) => e['applicable'] != false)
+            .toList();
+        expect(category.entries.length, id == 1 ? 23 : 21);
+        final refs = expected.map((e) => e['source_reference']).toSet();
+        expect(refs.contains('97'), id == 2);
+        for (final ref in ['93', '94', '95']) {
+          expect(refs.contains(ref), id == 1);
+        }
+        for (var i = 0; i < expected.length; i++) {
+          final entry = category.entries[i];
+          final raw = expected[i];
+          expect(entry.translation, isNot(contains(opposite)));
+          expect(entry.transliteration ?? '', isNot(contains(opposite)));
+          final variants =
+              catalogue[raw['source_reference']]['variations'] as List? ?? [];
+          final matching = variants.where((v) => v['id'] == period);
+          if (matching.isNotEmpty) {
+            final steps = matching.single['steps'] as List;
+            final recitations = steps.where((s) => s['type'] == 'recitation');
+            final arabic = recitations
+                .expand((s) => s['items'])
+                .map((i) => i['dua']['arabic'])
+                .join('\n\n');
+            expect(entry.text, arabic);
+            final recordings = recitations.expand((s) => s['recordings'] ?? []);
+            expect(
+              entry.audio.map((a) => a.asset.split('/').last),
+              recordings.map((r) => r['url'].split('/').last),
+            );
+          }
+        }
+      }
+    },
+  );
   test('Arabic search ignores diacritics and alef variations', () {
     expect(normalizeWorshipSearch('الرَّحْمَنُ'), 'الرحمن');
     expect(normalizeWorshipSearch('أذكار'), 'اذكار');

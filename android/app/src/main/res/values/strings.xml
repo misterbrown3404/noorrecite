@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_daily_ayah_description">Daily verse from the Quran</string>
+    <string name="widget_prayer_times_description">Daily prayer times</string>
+    <string name="widget_reading_streak_description">Daily Quran reading streak</string>
+    <string name="shortcut_add_widget">Add widget</string>
+    <string name="widget_picker_title">Choose a widget</string>
+    <string-array name="widget_picker_names">
+        <item>Daily Ayah</item>
+        <item>Prayer Times</item>
+        <item>Reading Streak</item>
+    </string-array>
+    <string name="widget_picker_manual">Touch and hold an empty area of your home screen, choose Widgets, then find Qari Verse.</string>
+</resources>
+

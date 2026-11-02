@@ -1,7 +1,7 @@
 name: qari_verse
 description: "QariVerse - A premium Quranic experience app"
 publish_to: 'none'
-version: 1.1.0+3
+version: 1.2.0+4
 
 environment:
   sdk: ^3.12.2
@@ -86,6 +86,9 @@ dependencies:
   # Monetization
   lucide_icons_flutter: ^4.0.1
 
+  # Home screen widgets
+  home_widget: ^0.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -103,7 +106,7 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/logo.png"
-  adaptive_icon_background: "#175C46"
+  adaptive_icon_background: "#091F25"
   adaptive_icon_foreground: "assets/images/logo.png"
   remove_alpha_ios: true
 

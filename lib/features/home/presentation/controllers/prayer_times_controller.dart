@@ -8,6 +8,7 @@ import 'package:geocoding/geocoding.dart';
 import '../../../../core/services/adhan_audio_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/prayer_schedule.dart';
+import '../../../../core/services/widget_service.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/storage/storage_keys.dart';
 import '../../../settings/presentation/controllers/settings_controller.dart';
@@ -209,6 +210,35 @@ class PrayerTimesController extends GetxController with WidgetsBindingObserver {
     _refreshAt = schedule.refreshAt;
     remaining.value = schedule.next.time.difference(now);
     _calculatedDate = DateTime(now.year, now.month, now.day);
+
+    // Push to home-screen widget (non-fatal if it fails).
+    try {
+      final next = schedule.next;
+      final rem = remaining.value;
+      final remStr =
+          '${rem.inHours}h ${rem.inMinutes.remainder(60)}m';
+      final prayerMaps = schedule.today
+          .where((p) => p.name != 'Sunrise')
+          .map(
+            (p) => {
+              'name': p.name,
+              'time':
+                  '${p.time.hour.toString().padLeft(2, '0')}:${p.time.minute.toString().padLeft(2, '0')}',
+            },
+          )
+          .toList();
+      unawaited(
+        WidgetService.pushPrayerTimes(
+          nextName: next.name,
+          nextTime:
+              '${next.time.hour.toString().padLeft(2, '0')}:${next.time.minute.toString().padLeft(2, '0')}',
+          remaining: remStr,
+          prayers: prayerMaps,
+        ),
+      );
+    } catch (_) {
+      // Widget update errors are non-fatal; silently discard.
+    }
   }
 
   void _startTimer() {
